@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const pastEvents = [
   { label: "CISMA Attendee Guide 2026", href: "/cisma-attendee-guide-2026" },
@@ -20,6 +21,19 @@ export default function Navbar() {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+    const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setLoggedIn(!!data.user));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const linkColor = isHome
     ? "text-white hover:text-gray-200 drop-shadow-sm"
@@ -88,6 +102,13 @@ export default function Navbar() {
           <Link href="/privacy-policy" className={`transition-colors ${linkColor}`}>
             Privacy Policy
           </Link>
+          
+          <Link
+            href={loggedIn ? "/dashboard" : "/login"}
+            className={`transition-colors ${linkColor}`}
+          >
+            {loggedIn ? "Dashboard" : "Log in"}
+          </Link>
 
           <a
             href="https://www.degruyterbrill.com/journal/key/csh/html?srsltid=AfmBOooYXr95qYA8GnQTCxM3f7BOsBoTdFeqjIA3v6_Bnd9uK6JesEaz"
@@ -129,6 +150,13 @@ export default function Navbar() {
             </div>
           </details>
           <Link href="/privacy-policy" className="block">Privacy Policy</Link>
+          <Link
+            href={loggedIn ? "/dashboard" : "/login"}
+            onClick={() => setMobileOpen(false)}
+            className="block"
+          >
+            {loggedIn ? "Dashboard" : "Log in"}
+          </Link>
           <a href="#" className="block rounded-full bg-[#f3ddc4] text-gray-800 px-4 py-2 text-center font-bold">
             Publish with us
           </a>
