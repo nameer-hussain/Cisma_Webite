@@ -5,9 +5,7 @@ import CallForProceedings from "@/components/CallForProceedings";
 import CismaLive from "@/components/CismaLive";
 import JoinOurTeam from "@/components/JoinOurTeam";
 import CallForChapterProposals from "@/components/CallForChapterProposals";
-import ConferenceCommittee from "@/components/ConferenceCommittee";
 import CismaLectureSeries from "@/components/CismaLectureSeries";
-import CoChairSection from "@/components/CoChairSection";
 import UpcomingLecture from "@/components/UpcomingLecture";
 
 export default function Home() {
@@ -21,11 +19,7 @@ export default function Home() {
       <CismaLive />
       <JoinOurTeam />
       <CallForChapterProposals />
-      <ConferenceCommittee />
       <CismaLectureSeries />
-      <CoChairSection />
-      
     </main>
   );
 }
-
