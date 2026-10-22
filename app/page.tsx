@@ -8,12 +8,14 @@ import CallForChapterProposals from "@/components/CallForChapterProposals";
 import ConferenceCommittee from "@/components/ConferenceCommittee";
 import CismaLectureSeries from "@/components/CismaLectureSeries";
 import CoChairSection from "@/components/CoChairSection";
+import UpcomingLecture from "@/components/UpcomingLecture";
 
 export default function Home() {
   return (
     <main>
       <Hero />
       <BrandLogo />
+      <UpcomingLecture />
       <MilanAnnouncement />
       <CallForProceedings />
       <CismaLive />
