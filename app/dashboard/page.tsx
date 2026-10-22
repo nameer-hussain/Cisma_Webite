@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 type Profile = {
@@ -158,12 +159,22 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <button
-          onClick={handleLogout}
-          className="mt-8 rounded-md border border-cisma-navy px-5 py-2.5 text-sm font-bold text-cisma-navy transition-colors hover:bg-cisma-navy hover:text-white"
-        >
-          Log out
-        </button>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          {profile?.role === 'admin' && (
+            <Link
+              href="/admin"
+              className="rounded-md bg-cisma-navy px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cisma-blue"
+            >
+              Admin Panel
+            </Link>
+          )}
+          <button
+            onClick={handleLogout}
+            className="rounded-md border border-cisma-navy px-5 py-2.5 text-sm font-bold text-cisma-navy transition-colors hover:bg-cisma-navy hover:text-white"
+          >
+            Log out
+          </button>
+        </div>
       </div>
     </main>
   )
