@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function MilanAnnouncement() {
   return (
-    <section className="w-full bg-white py-12 md:py-16">
+        <section id="milan" className="w-full scroll-mt-24 bg-white py-12 md:py-16">
       <div className="mx-auto max-w-6xl px-4 flex flex-col md:flex-row items-center gap-8 md:gap-12">
         {/* Image */}
         <div className="relative w-full md:w-5/7 aspect-[4/3] rounded-md overflow-hidden">
