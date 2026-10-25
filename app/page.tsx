@@ -49,9 +49,7 @@ export default function Home() {
       <UpcomingLecture />
       <EventSlider events={events} heading="Latest Events" />
       <MilanAnnouncement />
-      <CallForProceedings />
       <CismaLive />
-      <JoinOurTeam />
       <CismaLectureSeries />
     </main>
   );
