@@ -12,6 +12,7 @@ const pastEvents = [
   { label: "Keynote 2026", href: "/keynote-2026" },
   { label: "Schedule", href: "/keynote-2026#schedule" },
   { label: "Download", href: "/keynote-2026#download" },
+  { label: "Book of Abstracts 2026", href: "/book-of-abstracts-2026.pdf" },
   { label: "Memory", href: "/memory" },
 ];
 
