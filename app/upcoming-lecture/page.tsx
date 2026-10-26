@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import { QRCodeSVG } from "qrcode.react";
 
 const SLUG = "paul-baker-14";
 const inputClass =
@@ -19,6 +20,9 @@ export default function UpcomingLecturePage() {
   const [country, setCountry] = useState("");
   const [registered, setRegistered] = useState(false);
   const [joinUrl, setJoinUrl] = useState("");
+  const [meetingId, setMeetingId] = useState("");
+  const [passcode, setPasscode] = useState("");
+  const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,10 +30,22 @@ export default function UpcomingLecturePage() {
     const supabase = createClient();
     const { data } = await supabase
       .from("lecture_links")
-      .select("join_url")
+      .select("join_url, meeting_id, passcode")
       .eq("lecture_slug", SLUG)
       .maybeSingle();
     if (data?.join_url) setJoinUrl(data.join_url);
+    if (data?.meeting_id) setMeetingId(data.meeting_id);
+    if (data?.passcode) setPasscode(data.passcode);
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard blocked: user can still select the link text */
+    }
   }
 
   useEffect(() => {
@@ -151,14 +167,75 @@ export default function UpcomingLecturePage() {
                 You are registered for this lecture.
               </p>
               {joinUrl ? (
-                <a
-                  href={joinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-5 inline-block rounded-md bg-cisma-navy px-6 py-3 text-sm font-bold text-white hover:bg-cisma-blue"
-                >
-                  Open attendance link
-                </a>
+                <div className="mt-6 flex flex-col items-center gap-5">
+                  <a
+                    href={joinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block rounded-md bg-cisma-navy px-6 py-3 text-sm font-bold text-white hover:bg-cisma-blue"
+                  >
+                    Join the lecture on Zoom
+                  </a>
+
+                  <div className="rounded-lg border border-gray-200 bg-white p-4">
+                    <QRCodeSVG
+                      value={joinUrl}
+                      size={220}
+                      level="M"
+                      marginSize={4}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                  </div>
+                  <p className="text-sm text-neutral-600">
+                    Scan this QR code with your phone camera to join.
+                  </p>
+
+                  <div className="w-full rounded-md bg-gray-50 p-4 text-left text-sm text-neutral-700">
+                    <p className="font-semibold text-cisma-navy">
+                      Cannot scan the QR code?
+                    </p>
+                    <p className="mt-1">Use the button above, or open this link:</p>
+                    <p className="mt-1 break-all">
+                      <a
+                        href={joinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cisma-blue underline"
+                      >
+                        {joinUrl}
+                      </a>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={copyLink}
+                      className="mt-3 rounded-md border border-cisma-navy px-4 py-2 text-xs font-bold text-cisma-navy hover:bg-cisma-navy hover:text-white"
+                    >
+                      {copied ? "Copied" : "Copy link"}
+                    </button>
+                    {(meetingId || passcode) && (
+                      <p className="mt-4">
+                        Or join from the Zoom app with
+                        {meetingId && (
+                          <>
+                            {" "}Meeting ID <strong>{meetingId}</strong>
+                          </>
+                        )}
+                        {meetingId && passcode && " and"}
+                        {passcode && (
+                          <>
+                            {" "}Passcode <strong>{passcode}</strong>
+                          </>
+                        )}
+                        .
+                      </p>
+                    )}
+                    <p className="mt-4 text-neutral-500">
+                      The same link has also been sent to your email. For help:
+                      cisma@shisu.edu.cn
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <p className="mt-3 text-neutral-600">
                   The attendance link will appear on this page and will also be
