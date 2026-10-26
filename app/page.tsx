@@ -7,6 +7,7 @@ import CallForProceedings from "@/components/CallForProceedings";
 import CismaLive from "@/components/CismaLive";
 import JoinOurTeam from "@/components/JoinOurTeam";
 import CismaLectureSeries from "@/components/CismaLectureSeries";
+import BookOfAbstracts from "@/components/BookOfAbstracts";
 
 // Poster images live in /public . Add a new event = add one block here.
 const events: SliderEvent[] = [
@@ -39,6 +40,14 @@ const events: SliderEvent[] = [
       "Language, Culture, and Society in Contemporary China. An edited volume published by Springer Nature, with no publication fee.",
     cta: "Submit a proposal",
   },
+  {
+    title: "CISMA 2026 Book of Abstracts",
+    image: "/book-of-abstracts-cover.jpg",
+    href: "/book-of-abstracts-2026.pdf",
+    tag: "New",
+    description: "The Book of Abstracts is now available to read and download.",
+    cta: "Read now",
+  },
 ];
 
 export default function Home() {
@@ -48,6 +57,7 @@ export default function Home() {
       <BrandLogo />
       <UpcomingLecture />
       <EventSlider events={events} heading="Latest Events" />
+      <BookOfAbstracts />
       <MilanAnnouncement />
       <CismaLive />
       <CismaLectureSeries />
