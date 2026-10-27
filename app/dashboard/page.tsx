@@ -25,13 +25,24 @@ const TEMPLATE_PATH = '/certificate-template.png'
 // Har lecture ki details. Key wohi hai jo database mein lecture_slug hai.
 const LECTURE_INFO: Record<
   string,
-  { speaker: string; date: string; time: string; venue: string }
+  {
+    topic: string
+    speaker: string
+    speakerInfo: string[] // zyada se zyada 2 lines, har line chhoti rakhein
+    date: string
+    time: string
+  }
 > = {
   'paul-baker-14': {
-    speaker: 'Paul Baker',
+    topic:
+      'Surprise Words and Core Words: Using Vibe Coding to Identify Collocational Divergence Across Corpora',
+    speaker: 'Prof. Paul Baker',
+    speakerInfo: [
+      'Professor, Department of English and Communication',
+      'The Hong Kong Polytechnic University',
+    ],
     date: '27 October 2026',
     time: '1:00 PM PKT (08:00 UTC)',
-    venue: 'Zoom',
   },
 }
 
@@ -40,14 +51,20 @@ const REF_W = 1655
 const NAME_X = 864 // ribbon ka beech
 const NAME_Y = 1094 // naam ki baseline
 const NAME_MAX_W = 740
-const SPEAKER_X = 870 // "delivered by" ka beech (Date/Time/Venue bhi yahin center hote hain)
-const SPEAKER_Y = 1405
-const DATE_Y = 1467
-const TIME_Y = 1511
-const VENUE_Y = 1555
+const CENTER_X = 870 // "has attended" ke neeche sab kuch is line par center hota hai
+const TOPIC_Y = 1318 // topic ki pehli line ki baseline
+const TOPIC_MAX_W = 1100
 const FOOTER_Y = 2324
-// Template ke purane Date/Time/Venue labels ko dhakne ke liye (template pixels mein)
-const LABEL_COVER = { x: 800, y: 1436, w: 140, h: 128 }
+// Template ke purane "delivered by" aur Date/Time/Venue ko dhakne ke liye
+const COVER = { x: 760, y: 1300, w: 240, h: 270 }
+
+// Neeche ka naam aur designation (template ke purane text ko dhak kar naya bold safed text likha jata hai)
+const CHAIR_NAME = 'MUAHMMAD AFZAAL'
+const CHAIR_TITLE = 'FOUNDER & CO-CHAIR, CISMA'
+const CHAIR_X = 863
+const CHAIR_NAME_Y = 1878
+const CHAIR_TITLE_Y = 1922
+const CHAIR_COVER = { x: 640, y: 1848, w: 450, h: 84 }
 
 // Certificate par naam: sirf English/Latin huroof (PDF font ki wajah se)
 const NAME_PATTERN = /^[A-Za-z\u00C0-\u024F][A-Za-z\u00C0-\u024F .'\-]*$/
@@ -243,41 +260,89 @@ export default function DashboardPage() {
 
     const info = LECTURE_INFO[cert.lecture_slug]
     if (info) {
-      // Template ke purane Date/Time/Venue labels ko background rang se dhak dein
+      const cx = CENTER_X * s
+
+      // Template ke purane "delivered by" aur Date/Time/Venue ko background rang se dhak dein
       doc.setFillColor(7, 41, 79)
-      doc.rect(
-        LABEL_COVER.x * s,
-        LABEL_COVER.y * s,
-        LABEL_COVER.w * s,
-        LABEL_COVER.h * s,
-        'F'
-      )
+      doc.rect(COVER.x * s, COVER.y * s, COVER.w * s, COVER.h * s, 'F')
+
+      // Lecture ka topic: zyada se zyada 2 lines, lamba ho to font chhota ho jata hai
+      doc.setFont('times', 'bold')
+      let topicPx = 38
+      let topicLines: string[] = [info.topic]
+      for (;;) {
+        doc.setFontSize(pt(topicPx))
+        topicLines = doc.splitTextToSize(info.topic, TOPIC_MAX_W * s) as string[]
+        if (topicLines.length <= 2 || topicPx <= 24) break
+        topicPx -= 1
+      }
+      doc.setTextColor(255, 255, 255)
+      let y = TOPIC_Y
+      topicLines.forEach((line) => {
+        doc.text(line, cx, y * s, { align: 'center' })
+        y += 44
+      })
+      y -= 44 // aakhri line ki baseline
+
+      // delivered by
+      y += 52
+      doc.setFont('times', 'normal')
+      doc.setFontSize(pt(32))
+      doc.setTextColor(172, 183, 196)
+      doc.text('delivered by', cx, y * s, { align: 'center' })
 
       // Lecture dene wale ka naam
+      y += 50
       doc.setFont('times', 'bold')
       doc.setFontSize(pt(40))
       doc.setTextColor(255, 255, 255)
-      doc.text(info.speaker, SPEAKER_X * s, SPEAKER_Y * s, { align: 'center' })
+      doc.text(info.speaker, cx, y * s, { align: 'center' })
 
-      // Date, Time, Venue: har line (label + value) beech mein
+      // Lecture dene wale ki chhoti si info
+      y += 40
       doc.setFont('times', 'normal')
-      doc.setFontSize(pt(32))
-      const rows: [string, string, number][] = [
-        ['Date:', info.date, DATE_Y],
-        ['Time:', info.time, TIME_Y],
-        ['Venue:', info.venue, VENUE_Y],
-      ]
+      doc.setFontSize(pt(28))
+      doc.setTextColor(172, 183, 196)
+      info.speakerInfo.forEach((line) => {
+        doc.text(line, cx, y * s, { align: 'center' })
+        y += 32
+      })
+      y += 18
+
+      // Date aur Time: har line (label + value) beech mein
+      doc.setFontSize(pt(30))
       const gap = 10 * s
-      rows.forEach(([label, value, y]) => {
+      const rows: [string, string][] = [
+        ['Date:', info.date],
+        ['Time:', info.time],
+      ]
+      rows.forEach(([label, value]) => {
         const wl = doc.getTextWidth(label)
         const wv = doc.getTextWidth(value)
-        const startX = SPEAKER_X * s - (wl + gap + wv) / 2
+        const startX = cx - (wl + gap + wv) / 2
         doc.setTextColor(172, 183, 196)
         doc.text(label, startX, y * s)
         doc.setTextColor(235, 240, 248)
         doc.text(value, startX + wl + gap, y * s)
+        y += 42
       })
     }
+
+    // Co-chair ka naam aur designation: bold safed, topic ki tarah
+    doc.setFillColor(7, 41, 79)
+    doc.rect(
+      CHAIR_COVER.x * s,
+      CHAIR_COVER.y * s,
+      CHAIR_COVER.w * s,
+      CHAIR_COVER.h * s,
+      'F'
+    )
+    doc.setFont('times', 'bold')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(pt(34))
+    doc.text(CHAIR_NAME, CHAIR_X * s, CHAIR_NAME_Y * s, { align: 'center' })
+    doc.setFontSize(pt(28))
+    doc.text(CHAIR_TITLE, CHAIR_X * s, CHAIR_TITLE_Y * s, { align: 'center' })
 
     // Bilkul neeche chhota sa certificate ID aur verify link
     doc.setFont('helvetica', 'normal')
@@ -293,7 +358,7 @@ export default function DashboardPage() {
     return doc.output('blob')
   }
 
-    async function handleDownload(cert: Certificate) {
+  async function handleDownload(cert: Certificate) {
     setCertError('')
     if (!cert.name_locked) {
       setCertError('Please set your name for the certificate first.')
@@ -316,7 +381,7 @@ export default function DashboardPage() {
     setBusy('')
   }
 
-    async function handleView(cert: Certificate) {
+  async function handleView(cert: Certificate) {
     setCertError('')
     if (!cert.name_locked) {
       setCertError('Please set your name for the certificate first.')
@@ -504,7 +569,8 @@ export default function DashboardPage() {
                           </span>
                         </p>
                         <p className="mt-1 text-xs text-neutral-500">
-                            Set the name you want printed on your certificate. You can do this only once.
+                          Set the name you want printed on your certificate. You can do
+                          this only once.
                         </p>
                       </div>
                       <button
@@ -532,7 +598,7 @@ export default function DashboardPage() {
                       {busy === `${cert.id}:download` ? 'Preparing...' : 'Download PDF'}
                     </button>
                   </div>
-                   {!cert.name_locked && (
+                  {!cert.name_locked && (
                     <p className="mt-2 text-xs text-amber-700">
                       Set your name above to enable View and Download.
                     </p>
