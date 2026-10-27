@@ -11,6 +11,7 @@ const buttonClass =
 
 export default function ResetPasswordPage() {
   const router = useRouter()
+  const [tokenHash, setTokenHash] = useState('')
   const [ready, setReady] = useState(false)
   const [checked, setChecked] = useState(false)
   const [password, setPassword] = useState('')
@@ -20,16 +21,21 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient()
+    const params = new URLSearchParams(window.location.search)
+    const th = params.get('token_hash')
+    if (th) setTokenHash(th)
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || session) setReady(true)
+      if (event === 'PASSWORD_RECOVERY' || (session && !th)) setReady(true)
     })
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true)
-    })
+    if (!th) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session) setReady(true)
+      })
+    }
 
     const timer = setTimeout(() => setChecked(true), 3000)
     return () => {
@@ -38,14 +44,29 @@ export default function ResetPasswordPage() {
     }
   }, [])
 
+  async function handleContinue() {
+    setError('')
+    setLoading(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.verifyOtp({
+      type: 'recovery',
+      token_hash: tokenHash,
+    })
+    setLoading(false)
+    if (error) {
+      setError('This reset link is invalid or has expired. Please request a new one.')
+    } else {
+      setTokenHash('')
+      setReady(true)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
-
     setLoading(false)
     if (error) {
       setError(error.message)
@@ -77,6 +98,15 @@ export default function ResetPasswordPage() {
               {loading ? 'Please wait...' : 'Update password'}
             </button>
           </form>
+        ) : tokenHash ? (
+          <div className="mt-10 space-y-4 text-center">
+            <p className="text-[15px] text-neutral-600">
+              Click the button below to continue and choose a new password.
+            </p>
+            <button onClick={handleContinue} disabled={loading} className={buttonClass}>
+              {loading ? 'Please wait...' : 'Continue'}
+            </button>
+          </div>
         ) : (
           <p className="mt-10 text-center text-[15px] text-neutral-500">
             {checked ? (
@@ -92,8 +122,15 @@ export default function ResetPasswordPage() {
           </p>
         )}
 
-        {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-        {message && <p className="mt-4 text-sm text-green-700">{message}</p>}
+        {error && (
+          <p className="mt-4 text-center text-sm text-red-600">
+            {error}{' '}
+            <Link href="/forgot-password" className="font-semibold underline">
+              Request a new link
+            </Link>
+          </p>
+        )}
+        {message && <p className="mt-4 text-center text-sm text-green-700">{message}</p>}
       </div>
     </main>
   )
