@@ -1,26 +1,14 @@
 import Hero from "@/components/Hero";
 import BrandLogo from "@/components/BrandLogo";
-import UpcomingLecture from "@/components/UpcomingLecture";
 import EventSlider, { type SliderEvent } from "@/components/EventSlider";
 import MilanAnnouncement from "@/components/MilanAnnouncement";
 import CallForProceedings from "@/components/CallForProceedings";
-import CismaLive from "@/components/CismaLive";
 import JoinOurTeam from "@/components/JoinOurTeam";
 import CismaLectureSeries from "@/components/CismaLectureSeries";
 import BookOfAbstracts from "@/components/BookOfAbstracts";
 
 // Poster images live in /public . Add a new event = add one block here.
 const events: SliderEvent[] = [
-  {
-    title: "CISMA Lecture Series 14: Paul Baker",
-    image: "/events/paul-baker-14.jpeg",
-    href: "/upcoming-lecture",
-    tag: "Upcoming Lecture",
-    date: "27 October 2026 · 16:00 China Standard Time",
-    description:
-      "Surprise Words and Core Words: Using Vibe Coding to Identify Collocational Divergence Across Corpora. Free for registered members.",
-    cta: "Register now",
-  },
   {
     title: "CISMA International Conference 2027, Milan, Italy",
     image: "/milan-conference.jpg",
@@ -55,11 +43,9 @@ export default function Home() {
     <main>
       <Hero />
       <BrandLogo />
-      <UpcomingLecture />
       <EventSlider events={events} heading="Latest Events" />
       <BookOfAbstracts />
       <MilanAnnouncement />
-      <CismaLive />
       <CismaLectureSeries />
     </main>
   );

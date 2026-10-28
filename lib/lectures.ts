@@ -87,6 +87,109 @@ export interface Lecture {
 }
 
 export const lectures: Lecture[] = [
+    {
+    slug: "paul-baker-15",
+    cardTitle: "CISMA Lecture Series 14: Paul Baker",
+    cardImage: "/events/paul-baker-14.jpeg",
+    hasCardImage: true,
+    heroImage: "/events/paul-baker-hero.png",
+    hasHeroImage: true,
+
+    title: "CISMA Lecture Series 14: Paul Baker",
+    speakerName: "Paul Baker",
+    listTitle: "CISMA Lecture Series 14: Paul Baker",
+
+    heroTitle: "CISMA Lecture Series 14",
+    heroSubtitle: "Paul Baker",
+    posterImage: "/events/paul-baker-14.jpeg",
+    hasPosterImage: true,
+
+    blocks: [
+      { type: "heading", text: "Surprise Words and Core Words: Using Vibe Coding to Identify Collocational Divergence Across Corpora" },
+
+      { type: "heading", text: "About the lecture" },
+      {
+        type: "text",
+        align: "justify",
+        text: "This lecture explores an innovative approach to corpus linguistics by introducing the concepts of surprise words (s-words) and core words (c-words). It examines how words can behave differently across two corpora, even when conventional keyword analysis does not reveal these differences.\n\nThe talk introduces the S-Word Analysis Tool (SWAT), developed with the assistance of a large language model, to identify and rank words according to differences in their collocational patterns. By comparing the words that frequently occur alongside a particular word in different corpora, the tool helps researchers identify distinctive patterns of language use and investigate their meanings in context.\n\nUsing a case study comparing representations of obesity in The Guardian and The Sun, the lecture demonstrates how this approach can uncover differences in discourse framing, particularly in discussions of responsibility, cost, and possible solutions.\n\nThe session highlights the potential of vibe coding and large language models to support the development of new corpus-linguistic tools and analytical methods. It will be particularly relevant to researchers and students interested in corpus linguistics, discourse analysis, computational linguistics, and AI-assisted language research.",
+      },
+
+      { type: "heading", text: "About the speaker" },
+      { type: "image", src: "/events/paul-baker.jpg", has: true, width: "sm", alt: "Professor Paul Baker" },
+      { type: "text", bold: true, text: "Professor Paul Baker" },
+      { type: "text", text: "Department of English and Communication\nThe Hong Kong Polytechnic University" },
+      {
+        type: "text",
+        align: "justify",
+        text: "Professor Paul Baker is a leading scholar in corpus linguistics and discourse analysis. He is Professor in the Department of English and Communication at The Hong Kong Polytechnic University. His research focuses on corpus-assisted discourse studies, language variation, and the use of corpus methods to investigate linguistic patterns across different texts and contexts.\n\nHis work demonstrates how corpus-based approaches can help researchers explore language use systematically, identify patterns of meaning, and investigate how language varies across genres and communicative settings. His expertise makes a valuable contribution to the fields of corpus linguistics, discourse studies, and language research.",
+      },
+
+      { type: "heading", text: "Hosts" },
+      { type: "image", src: "/muhammad-afzaal.webp", has: true, width: "sm", alt: "Muhammad Afzaal" },
+      { type: "text", bold: true, text: "Muhammad Afzaal" },
+      { type: "text", text: "Founder and Co-Chair, CISMA\nAssociate Professor, Shanghai International Studies University" },
+      { type: "text", bold: true, text: "Shanshan Xiao" },
+      { type: "text", text: "Coordinator, PhD Candidate\nShanghai International Studies University" },
+
+      { type: "heading", text: "Date and platform" },
+      {
+        type: "text",
+        text: "27 October 2026\n16:00 China Standard Time (13:00 Pakistan time, 08:00 UTC)\nOnline webinar",
+      },
+    ],
+   },
+    {
+    slug: "cisma-live-randi-reppen",
+    cardTitle: "CISMA Live: Corpus Linguistics Today, A Conversation with Randi Reppen",
+    cardImage: "/cisma-live-poster.png",
+    hasCardImage: true,
+    heroImage: "/events/cisma-live-hero.jpeg",
+    hasHeroImage: true,
+
+    title: "CISMA Live | Corpus Linguistics Today: A Conversation with Randi Reppen",
+    speakerName: "Randi Reppen and Muhammad Afzaal",
+    listTitle: "CISMA Live | Corpus Linguistics Today: A Conversation with Randi Reppen",
+
+    heroTitle: "CISMA Live",
+    heroSubtitle: "Corpus Linguistics Today: A Conversation with Randi Reppen",
+    posterImage: "/reni-reppen.jpg",
+    hasPosterImage: true,
+
+    blocks: [
+      { type: "heading", text: "About the conversation" },
+      {
+        type: "text",
+        align: "justify",
+        text: "How can corpus evidence help us better understand language, strengthen linguistic research, and improve teaching practices? This special CISMA conversation brings together Professor Randi Reppen and Dr. Muhammad Afzaal to explore contemporary developments in corpus linguistics and its practical applications.\n\nDrawing on her extensive experience in corpus research and language education, Professor Reppen discusses the importance of authentic language data, effective research methodologies, and the relationship between linguistic analysis and real-world applications. The conversation also explores emerging trends in quantitative approaches, artificial intelligence, and corpus-informed language instruction.\n\nThe session highlights how corpus-based methods can help researchers identify patterns of language use, develop evidence-based insights, and bridge the gap between linguistic research and educational practice.",
+      },
+
+      { type: "heading", text: "Key topics" },
+      {
+        type: "text",
+        align: "left",
+        text: "• Tools in corpus linguistics: advantages and challenges\n• The role of linguistics in corpus-based research\n• Corpus-informed language teaching and learning\n• Quantitative methods and emerging applications of AI\n• Research developments and future directions in corpus linguistics",
+      },
+
+      { type: "heading", text: "About the speaker" },
+      { type: "image", src: "/events/randi-reppen.jpg", has: true, width: "sm", alt: "Professor Randi Reppen" },
+      { type: "text", bold: true, text: "Professor Randi Reppen" },
+      {
+        type: "text",
+        text: "Professor Emerita of Applied Linguistics and TESL\nNorthern Arizona University, USA",
+      },
+      {
+        type: "text",
+        align: "justify",
+        text: "Professor Randi Reppen is Professor Emerita of Applied Linguistics and Teaching English as a Second Language (TESL) at Northern Arizona University, USA. Her research focuses on corpus linguistics and its applications in language teaching, linguistic research, and educational materials development.\n\nShe has extensive experience in teaching English language learners, training language teachers, and directing research projects involving large collections of spoken and written language. Her professional work includes contributions to major corpus compilation projects and the development of corpus-informed language learning resources.\n\nThrough her research and academic contributions, Professor Reppen has helped demonstrate how corpus-based evidence can connect linguistic research with practical teaching and learning applications.",
+      },
+
+      { type: "heading", text: "Date and platform" },
+      {
+        type: "text",
+        text: "September 13\n11:00 PM Shanghai Time / 8:00 PM Pakistan Time\nOnline, via Zoom",
+      },
+    ],
+  },  
   {
     slug: "retraction-to-research-integrity",
     cardTitle: "From retraction to research integrity: What does it mean for grassroots...",
