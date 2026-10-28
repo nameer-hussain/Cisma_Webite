@@ -20,6 +20,12 @@ type Certificate = {
   name_locked: boolean
 }
 
+type LectureOption = {
+  lecture_slug: string
+  can_apply: boolean
+  has_certificate: boolean
+}
+
 const TEMPLATE_PATH = '/certificate-template.png'
 
 // Har lecture ki details. Key wohi hai jo database mein lecture_slug hai.
@@ -44,6 +50,12 @@ const LECTURE_INFO: Record<
     date: '27 October 2026',
     time: '1:00 PM PKT (08:00 UTC)',
   },
+}
+
+// Dashboard par lecture ka naam dikhane ke liye
+function lectureLabel(slug: string) {
+  const info = LECTURE_INFO[slug]
+  return info ? `${info.speaker}: ${info.topic}` : slug
 }
 
 // Positions, template ke pixels mein (template 1655 pixel chora hai)
@@ -78,11 +90,31 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   })
 }
 
+// Member ke certificates aur apply ke options database se laata hai
+async function fetchCertificateData(userId: string) {
+  const supabase = createClient()
+  const { data: certData } = await supabase
+    .from('certificates')
+    .select(
+      'id, certificate_code, lecture_slug, full_name, institution, issued_at, name_locked'
+    )
+    .eq('user_id', userId)
+    .order('issued_at', { ascending: false })
+
+  const { data: optData } = await supabase.rpc('my_certificate_options')
+
+  return {
+    certs: (certData || []) as Certificate[],
+    options: (optData || []) as LectureOption[],
+  }
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [userId, setUserId] = useState('')
   const [profile, setProfile] = useState<Profile | null>(null)
   const [certificates, setCertificates] = useState<Certificate[]>([])
+  const [lectureOptions, setLectureOptions] = useState<LectureOption[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -90,6 +122,11 @@ export default function DashboardPage() {
   const [nameInput, setNameInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+
+  // Certificate ke liye apply karna
+  const [applying, setApplying] = useState('')
+  const [applyError, setApplyError] = useState('')
+  const [applyMessage, setApplyMessage] = useState('')
 
   // Certificate ke naam ki tabdeeli
   const [editingCertId, setEditingCertId] = useState<string | null>(null)
@@ -123,15 +160,9 @@ export default function DashboardPage() {
         setNameInput(data.full_name || '')
       }
 
-      const { data: certData } = await supabase
-        .from('certificates')
-        .select(
-          'id, certificate_code, lecture_slug, full_name, institution, issued_at, name_locked'
-        )
-        .eq('user_id', userData.user.id)
-        .order('issued_at', { ascending: false })
-
-      setCertificates(certData || [])
+      const { certs, options } = await fetchCertificateData(userData.user.id)
+      setCertificates(certs)
+      setLectureOptions(options)
       setLoading(false)
     }
 
@@ -164,6 +195,46 @@ export default function DashboardPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  async function handleApply(slug: string) {
+    setApplyError('')
+    setApplyMessage('')
+    setCertError('')
+    setCertMessage('')
+    setApplying(slug)
+
+    const supabase = createClient()
+    const { data, error } = await supabase.rpc('apply_for_certificate', {
+      p_lecture_slug: slug,
+    })
+
+    if (error) {
+      setApplyError(error.message)
+      setApplying('')
+      return
+    }
+
+    const result = data as string
+    if (result === 'issued' || result === 'already_issued') {
+      const fresh = await fetchCertificateData(userId)
+      setCertificates(fresh.certs)
+      setLectureOptions(fresh.options)
+      setApplyMessage(
+        result === 'issued'
+          ? 'Your certificate is ready. Set your name below, then you can view or download it.'
+          : 'You already have this certificate.'
+      )
+    } else if (result === 'not_registered') {
+      setApplyError('We could not find a registration for this lecture with your account.')
+    } else if (result === 'closed') {
+      setApplyError('Certificates for this lecture are not open for applications.')
+    } else if (result === 'not_logged_in') {
+      setApplyError('Please log in again.')
+    } else {
+      setApplyError('Could not apply. Please try again.')
+    }
+    setApplying('')
   }
 
   function startEditCertName(cert: Certificate) {
@@ -415,6 +486,8 @@ export default function DashboardPage() {
     )
   }
 
+  const pendingOptions = lectureOptions.filter((o) => !o.has_certificate)
+
   return (
     <main className="bg-white">
       <div className="mx-auto max-w-2xl px-6 pb-24 pt-20 md:pt-28">
@@ -485,6 +558,49 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {pendingOptions.length > 0 && (
+          <div className="mt-8 rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-cisma-navy">
+              Apply for a certificate
+            </h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              You registered for the lectures below. When certificates are open, you can
+              apply for yours here.
+            </p>
+
+            {applyError && <p className="mt-3 text-sm text-red-600">{applyError}</p>}
+            {applyMessage && <p className="mt-3 text-sm text-green-700">{applyMessage}</p>}
+
+            <ul className="mt-4 space-y-4">
+              {pendingOptions.map((opt) => (
+                <li
+                  key={opt.lecture_slug}
+                  className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4"
+                >
+                  <p className="min-w-0 flex-1 text-sm text-neutral-800">
+                    {lectureLabel(opt.lecture_slug)}
+                  </p>
+                  {opt.can_apply ? (
+                    <button
+                      onClick={() => handleApply(opt.lecture_slug)}
+                      disabled={applying !== ''}
+                      className="rounded-md bg-cisma-navy px-4 py-2 text-sm font-bold text-white hover:bg-cisma-blue disabled:opacity-50"
+                    >
+                      {applying === opt.lecture_slug
+                        ? 'Applying...'
+                        : 'Apply for certificate'}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-neutral-500">
+                      Certificates are not open for this lecture.
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="mt-8 rounded-lg border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-cisma-navy">Your certificates</h2>
 
@@ -493,14 +609,16 @@ export default function DashboardPage() {
 
           {certificates.length === 0 ? (
             <p className="mt-3 text-sm text-neutral-500">
-              No certificates yet. Certificates are issued after a lecture to members who
-              attended.
+              No certificates yet. If you registered for a lecture, you can apply for your
+              certificate above once certificates are open.
             </p>
           ) : (
             <ul className="mt-4 space-y-5">
               {certificates.map((cert) => (
                 <li key={cert.id} className="border-t border-gray-100 pt-4">
-                  <p className="font-medium text-neutral-800">{cert.lecture_slug}</p>
+                  <p className="font-medium text-neutral-800">
+                    {lectureLabel(cert.lecture_slug)}
+                  </p>
                   <p className="text-xs text-neutral-500">
                     {cert.certificate_code} ·{' '}
                     {new Date(cert.issued_at).toLocaleDateString('en-GB')}
