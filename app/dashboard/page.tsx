@@ -71,7 +71,7 @@ const FOOTER_Y = 2324
 const COVER = { x: 760, y: 1300, w: 240, h: 270 }
 
 // Neeche ka naam aur designation (template ke purane text ko dhak kar naya bold safed text likha jata hai)
-const CHAIR_NAME = 'MUAHMMAD AFZAAL'
+const CHAIR_NAME = 'MUAHAMMAD AFZAAL'
 const CHAIR_TITLE = 'FOUNDER & CO-CHAIR, CISMA'
 const CHAIR_X = 863
 const CHAIR_NAME_Y = 1878

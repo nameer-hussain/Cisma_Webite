@@ -71,6 +71,9 @@ export default function Navbar() {
           <Link href="/#cisma-lectures-series" className={`transition-colors ${linkColor}`}>
             CISMA Lectures Series
           </Link>
+          <Link href="/podcast" className={`transition-colors ${linkColor}`}>
+            CISMA Podcast
+          </Link>
 
           {/* Dropdown */}
           <div
@@ -140,6 +143,7 @@ export default function Navbar() {
         <div className="lg:hidden border-t border-gray-200 bg-white px-4 py-4 space-y-3 text-sm font-semibold text-gray-700">
           <Link href="/about" className="block">About CISMA</Link>
           <Link href="/#cisma-lectures-series" className="block">CISMA Lectures Series</Link>
+          <Link href="/podcast" className="block">CISMA Podcast</Link>
           <details>
             <summary className="cursor-pointer">Past Events</summary>
             <div className="pl-4 pt-2 space-y-2">

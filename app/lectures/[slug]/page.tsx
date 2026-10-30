@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { lectures, getLectureBySlug } from "@/lib/lectures";
+import LectureRegistration from "@/components/LectureRegistration";
 
 export function generateStaticParams() {
   return lectures.map((lecture) => ({ slug: lecture.slug }));
@@ -45,6 +46,14 @@ const blockWidth = { sm: "w-36", md: "w-52", lg: "w-64", full: "w-full" } as con
           <p className={`text-white/90 text-lg ${l.heroSubtitle ? "italic" : ""}`}>
             {l.heroSubtitle || l.speakerName}
           </p>
+          {l.registrationOpen && (
+            <a
+              href="#register"
+              className="mt-5 inline-block self-start rounded-md bg-cisma-gold px-6 py-2.5 text-sm font-bold text-cisma-navy hover:opacity-90"
+            >
+              Register now
+            </a>
+          )}
         </div>
       </section>
 
@@ -437,6 +446,11 @@ const blockWidth = { sm: "w-36", md: "w-52", lg: "w-64", full: "w-full" } as con
                 </>
               )}
             </>
+          )}
+          {l.registrationOpen && (
+            <div id="register" className="mt-14 scroll-mt-24">
+              <LectureRegistration slug={l.slug} />
+            </div>
           )}
         </div>
       </section>

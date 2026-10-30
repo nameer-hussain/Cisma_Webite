@@ -84,11 +84,12 @@ export interface Lecture {
   posterLines?: string[]; // each item = one line/paragraph; use "" for an empty spacer gap
   blocks?: LectureBlock[]; // flexible layout: rendered top-to-bottom in the order given
   listTitle?: string;
+  registrationOpen?: boolean;
 }
 
 export const lectures: Lecture[] = [
     {
-    slug: "paul-baker-15",
+    slug: "paul-baker-14",
     cardTitle: "CISMA Lecture Series 14: Paul Baker",
     cardImage: "/events/paul-baker-14.jpeg",
     hasCardImage: true,
