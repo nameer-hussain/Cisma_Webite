@@ -84,11 +84,12 @@ export interface Lecture {
   posterLines?: string[]; // each item = one line/paragraph; use "" for an empty spacer gap
   blocks?: LectureBlock[]; // flexible layout: rendered top-to-bottom in the order given
   listTitle?: string;
+  registrationOpen?: boolean;
 }
 
 export const lectures: Lecture[] = [
     {
-    slug: "paul-baker-15",
+    slug: "paul-baker-14",
     cardTitle: "CISMA Lecture Series 14: Paul Baker",
     cardImage: "/events/paul-baker-14.jpeg",
     hasCardImage: true,
@@ -125,7 +126,6 @@ export const lectures: Lecture[] = [
       },
 
       { type: "heading", text: "Hosts" },
-      { type: "image", src: "/muhammad-afzaal.webp", has: true, width: "sm", alt: "Muhammad Afzaal" },
       { type: "text", bold: true, text: "Muhammad Afzaal" },
       { type: "text", text: "Founder and Co-Chair, CISMA\nAssociate Professor, Shanghai International Studies University" },
       { type: "text", bold: true, text: "Shanshan Xiao" },
