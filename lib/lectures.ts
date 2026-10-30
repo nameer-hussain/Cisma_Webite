@@ -126,7 +126,6 @@ export const lectures: Lecture[] = [
       },
 
       { type: "heading", text: "Hosts" },
-      { type: "image", src: "/muhammad-afzaal.webp", has: true, width: "sm", alt: "Muhammad Afzaal" },
       { type: "text", bold: true, text: "Muhammad Afzaal" },
       { type: "text", text: "Founder and Co-Chair, CISMA\nAssociate Professor, Shanghai International Studies University" },
       { type: "text", bold: true, text: "Shanshan Xiao" },
