@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { ADMIN_PANEL_ROLES } from '@/lib/adminModules'
 
 type Profile = {
   full_name: string | null
@@ -728,7 +729,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          {profile?.role === 'admin' && (
+          {ADMIN_PANEL_ROLES.includes(profile?.role ?? '') && (
             <Link
               href="/admin"
               className="rounded-md bg-cisma-navy px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cisma-blue"

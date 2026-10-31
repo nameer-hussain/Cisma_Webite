@@ -10,28 +10,31 @@ type Episode = {
   speaker: string | null
   description: string | null
   recorded_on: string | null
-  audio_path: string
+  audio_path: string | null
+  youtube_id: string | null
   duration_minutes: number | null
   published: boolean
   created_at: string
 }
 
-const MAX_BYTES = 50 * 1024 * 1024 // 50 MB (Supabase free plan limit)
-
-const MIME_BY_EXT: Record<string, string> = {
-  mp3: 'audio/mpeg',
-  m4a: 'audio/mp4',
-  aac: 'audio/aac',
-  wav: 'audio/wav',
-}
-
-function slugify(s: string) {
-  const slug = s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 50)
-  return slug || 'episode'
+// Har tarah ka YouTube link samajhta hai: watch?v=, youtu.be/, embed/, shorts/, live/
+function parseYouTubeId(input: string): string | null {
+  const s = input.trim()
+  if (/^[\w-]{11}$/.test(s)) return s
+  try {
+    const u = new URL(s)
+    const host = u.hostname.replace(/^www\./, '').replace(/^m\./, '')
+    if (host === 'youtu.be') return u.pathname.slice(1, 12) || null
+    if (host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
+      const v = u.searchParams.get('v')
+      if (v) return v.slice(0, 11)
+      const m = u.pathname.match(/^\/(embed|shorts|live)\/([\w-]{11})/)
+      if (m) return m[2]
+    }
+  } catch {
+    /* link nahi hai */
+  }
+  return null
 }
 
 const inputClass =
@@ -49,9 +52,10 @@ export default function AdminPodcastPage() {
   const [description, setDescription] = useState('')
   const [recordedOn, setRecordedOn] = useState('')
   const [duration, setDuration] = useState('')
-  const [file, setFile] = useState<File | null>(null)
-  const [fileKey, setFileKey] = useState(0)
+  const [ytUrl, setYtUrl] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const previewId = ytUrl ? parseYouTubeId(ytUrl) : null
 
   useEffect(() => {
     const supabase = createClient()
@@ -69,7 +73,7 @@ export default function AdminPodcastPage() {
         .eq('id', userData.user.id)
         .single()
 
-      if (me?.role !== 'admin') {
+      if (!['admin', 'editor'].includes(me?.role ?? '')) {
         setStatus('denied')
         return
       }
@@ -87,58 +91,17 @@ export default function AdminPodcastPage() {
     load()
   }, [router])
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setError('')
-    const f = e.target.files?.[0] ?? null
-    setFile(f)
-    if (!f) return
-
-    if (f.size > MAX_BYTES) {
-      setError(
-        `This file is ${(f.size / 1024 / 1024).toFixed(1)} MB. The limit is 50 MB. Please compress it first (mono, 64 kbps MP3).`
-      )
-      setFile(null)
-      setFileKey((k) => k + 1)
-      return
-    }
-
-    // Try to read the duration automatically
-    const url = URL.createObjectURL(f)
-    const audio = new Audio()
-    audio.preload = 'metadata'
-    audio.onloadedmetadata = () => {
-      if (isFinite(audio.duration)) setDuration(String(Math.max(1, Math.round(audio.duration / 60))))
-      URL.revokeObjectURL(url)
-    }
-    audio.onerror = () => URL.revokeObjectURL(url)
-    audio.src = url
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
     setMessage('')
 
     if (!title.trim()) return setError('Please enter a title.')
-    if (!file) return setError('Please choose an audio file.')
+    const id = parseYouTubeId(ytUrl)
+    if (!id) return setError('Please paste a valid YouTube link.')
 
     setSaving(true)
     const supabase = createClient()
-
-    const ext = (file.name.split('.').pop() || 'mp3').toLowerCase()
-    const path = `${slugify(title)}-${Date.now()}.${ext}`
-    const contentType = file.type || MIME_BY_EXT[ext] || 'audio/mpeg'
-
-    const { error: upErr } = await supabase.storage
-      .from('podcast')
-      .upload(path, file, { contentType, upsert: false })
-
-    if (upErr) {
-      setSaving(false)
-      setError(`Upload failed: ${upErr.message}`)
-      return
-    }
-
     const { data, error: insErr } = await supabase
       .from('podcast_episodes')
       .insert({
@@ -146,16 +109,14 @@ export default function AdminPodcastPage() {
         speaker: speaker.trim() || null,
         description: description.trim() || null,
         recorded_on: recordedOn || null,
-        audio_path: path,
+        youtube_id: id,
         duration_minutes: duration ? parseInt(duration, 10) : null,
       })
       .select()
       .single()
+    setSaving(false)
 
     if (insErr || !data) {
-      // Do not leave an orphan file behind
-      await supabase.storage.from('podcast').remove([path])
-      setSaving(false)
       setError(`Could not save the episode: ${insErr?.message ?? 'unknown error'}`)
       return
     }
@@ -166,9 +127,7 @@ export default function AdminPodcastPage() {
     setDescription('')
     setRecordedOn('')
     setDuration('')
-    setFile(null)
-    setFileKey((k) => k + 1)
-    setSaving(false)
+    setYtUrl('')
     setMessage('Episode added.')
   }
 
@@ -187,7 +146,7 @@ export default function AdminPodcastPage() {
   }
 
   async function handleDelete(ep: Episode) {
-    if (!window.confirm(`Delete "${ep.title}" and its audio file? This cannot be undone.`)) return
+    if (!window.confirm(`Delete "${ep.title}"? This cannot be undone.`)) return
     setError('')
     setMessage('')
     const supabase = createClient()
@@ -195,7 +154,8 @@ export default function AdminPodcastPage() {
     const { error: delErr } = await supabase.from('podcast_episodes').delete().eq('id', ep.id)
     if (delErr) return setError(delErr.message)
 
-    await supabase.storage.from('podcast').remove([ep.audio_path])
+    // Purane audio episodes ki file bhi hatao (YouTube wale mein file nahi hoti)
+    if (ep.audio_path) await supabase.storage.from('podcast').remove([ep.audio_path])
     setEpisodes((list) => list.filter((x) => x.id !== ep.id))
     setMessage('Episode deleted.')
   }
@@ -240,6 +200,34 @@ export default function AdminPodcastPage() {
           <h2 className="text-xl font-semibold text-cisma-navy">Add a new episode</h2>
 
           <div>
+            <label className="mb-1 block text-sm text-neutral-600">YouTube link *</label>
+            <input
+              className={inputClass}
+              placeholder="https://www.youtube.com/watch?v=..."
+              value={ytUrl}
+              onChange={(e) => setYtUrl(e.target.value)}
+              required
+            />
+            <p className="mt-1 text-xs text-neutral-500">
+              Upload the video on YouTube first (Unlisted or Public), then paste its link here.
+              Private videos will not play on the website.
+            </p>
+            {ytUrl && !previewId && (
+              <p className="mt-1 text-xs text-red-600">This does not look like a YouTube link.</p>
+            )}
+            {previewId && (
+              <div className="mt-3 aspect-video w-full max-w-md overflow-hidden rounded-md border border-gray-200">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${previewId}`}
+                  title="Preview"
+                  className="h-full w-full"
+                  allowFullScreen
+                />
+              </div>
+            )}
+          </div>
+
+          <div>
             <label className="mb-1 block text-sm text-neutral-600">Title *</label>
             <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} required />
           </div>
@@ -270,7 +258,7 @@ export default function AdminPodcastPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-neutral-600">Duration (minutes)</label>
+              <label className="mb-1 block text-sm text-neutral-600">Duration (minutes, optional)</label>
               <input
                 type="number"
                 min={1}
@@ -281,30 +269,12 @@ export default function AdminPodcastPage() {
             </div>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm text-neutral-600">
-              Audio file * (MP3, M4A, AAC or WAV, up to 50 MB)
-            </label>
-            <input
-              key={fileKey}
-              type="file"
-              accept=".mp3,.m4a,.aac,.wav,audio/*"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-neutral-700 file:mr-4 file:rounded-md file:border-0 file:bg-cisma-navy file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-cisma-blue"
-            />
-            {file && (
-              <p className="mt-1 text-xs text-neutral-500">
-                {file.name} ({(file.size / 1024 / 1024).toFixed(1)} MB)
-              </p>
-            )}
-          </div>
-
           <button
             type="submit"
             disabled={saving}
             className="rounded-md bg-cisma-navy px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cisma-blue disabled:opacity-50"
           >
-            {saving ? 'Uploading, please wait...' : 'Upload episode'}
+            {saving ? 'Saving...' : 'Add episode'}
           </button>
         </form>
 
@@ -322,7 +292,9 @@ export default function AdminPodcastPage() {
                       .filter(Boolean)
                       .join(' · ')}
                   </p>
-                  <p className="mt-1 text-xs text-neutral-400">{ep.audio_path}</p>
+                  <p className="mt-1 text-xs text-neutral-400">
+                    {ep.youtube_id ? `YouTube: ${ep.youtube_id}` : `Audio file: ${ep.audio_path}`}
+                  </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span

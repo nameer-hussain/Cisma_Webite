@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { ADMIN_PANEL_ROLES, modulesFor } from '@/lib/adminModules'
 
 type Row = Record<string, any>
 type View = 'home' | 'lectures' | 'registrations' | 'members'
@@ -113,6 +114,7 @@ export default function AdminPage() {
   const [profiles, setProfiles] = useState<Row[]>([])
   const [regs, setRegs] = useState<Row[]>([])
   const [query, setQuery] = useState('')
+  const [role, setRole] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -130,10 +132,11 @@ export default function AdminPage() {
         .eq('id', userData.user.id)
         .single()
 
-      if (me?.role !== 'admin') {
-        setStatus('denied')
-        return
+      if (!ADMIN_PANEL_ROLES.includes(me?.role ?? '')) {
+          setStatus('denied')
+          return
       }
+      setRole(me!.role)
 
       const [p, r] = await Promise.all([
         supabase.from('profiles').select('*'),
@@ -222,26 +225,27 @@ export default function AdminPage() {
         {/* HOME: main cards */}
         {view === 'home' && (
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <AdminCard
-              tag="Registrations"
-              title="Lecture Registrations"
-              description="Choose a lecture and review everyone who registered for it. Search and download as CSV."
-              stat={`${regs.length} registrations in total`}
-              onClick={() => go('lectures')}
-            />
-            <AdminCard
-              tag="Accounts"
-              title="Members"
-              description="See everyone who has created an account on the website. Search and download as CSV."
-              stat={`${profiles.length} accounts`}
-              onClick={() => go('members')}
-            />
-            <AdminCard
-              tag="Content"
-              title="Manage Podcast"
-              description="Add, edit and manage CISMA Podcast episodes."
-              href="/admin/podcast"
-            />
+            {modulesFor(role).map((m) => {
+              const stat =
+                m.key === 'registrations'
+                  ? `${regs.length} registrations in total`
+                  : m.key === 'members'
+                    ? `${profiles.length} accounts`
+                    : m.key === 'users'
+                      ? `${profiles.filter((p) => p.role === 'admin').length} admins`
+                      : undefined
+              return (
+                <AdminCard
+                  key={m.key}
+                  tag={m.tag}
+                  title={m.title}
+                  description={m.description}
+                  stat={stat}
+                  href={m.href}
+                  onClick={m.view ? () => go(m.view!) : undefined}
+                />
+              )
+            })}
           </div>
         )}
 

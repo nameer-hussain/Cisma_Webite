@@ -9,7 +9,8 @@ type Episode = {
   speaker: string | null
   description: string | null
   recorded_on: string | null
-  audio_path: string
+  audio_path: string | null
+  youtube_id: string | null
   duration_minutes: number | null
 }
 
@@ -46,12 +47,12 @@ export default function PodcastPage() {
 
       const { data, error } = await supabase
         .from('podcast_episodes')
-        .select('id, title, speaker, description, recorded_on, audio_path, duration_minutes')
+        .select('id, title, speaker, description, recorded_on, audio_path, youtube_id, duration_minutes')
         .order('recorded_on', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
 
       if (error) setError(error.message)
-      else setEpisodes(data ?? [])
+      else setEpisodes((data ?? []) as Episode[])
       setLoading(false)
     }
 
@@ -59,7 +60,7 @@ export default function PodcastPage() {
   }, [])
 
   async function handleListen(ep: Episode) {
-    // Clicking the active episode again closes the player
+    // Dobara click karne par player band
     if (activeId === ep.id) {
       setActiveId(null)
       setAudioUrl('')
@@ -67,9 +68,18 @@ export default function PodcastPage() {
     }
 
     setError('')
+
+    // YouTube episode: sirf kholna hai, signed link ki zaroorat nahi
+    if (ep.youtube_id) {
+      setAudioUrl('')
+      setActiveId(ep.id)
+      return
+    }
+
+    if (!ep.audio_path) return
     setLoadingId(ep.id)
     const supabase = createClient()
-    // Private link that works for 1 hour
+    // Private link jo 1 ghante chalta hai
     const { data, error } = await supabase.storage
       .from('podcast')
       .createSignedUrl(ep.audio_path, 3600)
@@ -107,14 +117,14 @@ export default function PodcastPage() {
           CISMA Podcast
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-neutral-600">
-          Audio recordings of CISMA lectures, available to registered members only.
+          Recordings of CISMA lectures, available to registered members only.
         </p>
 
         {!loggedIn ? (
           <div className="mt-10 rounded-lg border border-gray-200 p-6 text-center">
             <p className="text-lg font-semibold text-cisma-navy">Members only</p>
             <p className="mt-2 text-sm text-neutral-600">
-              Please log in or create a free account to listen to the lectures.
+              Please log in or create a free account to watch the lectures.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
@@ -147,6 +157,7 @@ export default function PodcastPage() {
             <div className="mt-6 space-y-4">
               {filtered.map((ep) => {
                 const isActive = activeId === ep.id
+                const isVideo = Boolean(ep.youtube_id)
                 return (
                   <div key={ep.id} className="rounded-lg border border-gray-200 p-6">
                     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -167,7 +178,13 @@ export default function PodcastPage() {
                         disabled={loadingId === ep.id}
                         className="rounded-md bg-cisma-navy px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-cisma-blue disabled:opacity-50"
                       >
-                        {loadingId === ep.id ? 'Loading...' : isActive ? 'Close' : 'Listen'}
+                        {loadingId === ep.id
+                          ? 'Loading...'
+                          : isActive
+                            ? 'Close'
+                            : isVideo
+                              ? 'Watch'
+                              : 'Listen'}
                       </button>
                     </div>
 
@@ -177,7 +194,19 @@ export default function PodcastPage() {
                       </p>
                     )}
 
-                    {isActive && audioUrl && (
+                    {isActive && ep.youtube_id && (
+                      <div className="mt-5 aspect-video w-full overflow-hidden rounded-md bg-black">
+                        <iframe
+                          src={`https://www.youtube-nocookie.com/embed/${ep.youtube_id}?autoplay=1&rel=0`}
+                          title={ep.title}
+                          className="h-full w-full"
+                          allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+
+                    {isActive && !ep.youtube_id && audioUrl && (
                       <audio
                         key={audioUrl}
                         controls
