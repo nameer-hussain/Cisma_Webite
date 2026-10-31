@@ -2,13 +2,45 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { lectures } from "@/lib/lectures";
+import { lectures as staticLectures } from "@/lib/lectures";
+import { fetchPastLectures } from "@/lib/siteData";
 
 // How many cards show in the grid. The rest are only in the "More Posts" list.
 const GRID_COUNT = 8;
 
+type Item = {
+  slug: string;
+  cardTitle: string;
+  listTitle: string;
+  image: string | null;
+};
+
+// Shown first (and if the database is empty or unreachable), so the section is never blank.
+const fallback: Item[] = staticLectures.map((l) => ({
+  slug: l.slug.replace(/\s+/g, "-"),
+  cardTitle: l.cardTitle,
+  listTitle: l.listTitle || l.cardTitle,
+  image: l.hasCardImage ? l.cardImage : null,
+}));
+
 export default function CismaLectureSeries() {
   const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<Item[]>(fallback);
+
+  // Load past lectures from the database
+  useEffect(() => {
+    fetchPastLectures().then((rows) => {
+      if (!rows.length) return;
+      setItems(
+        rows.map((r) => ({
+          slug: r.slug,
+          cardTitle: r.card_title || r.title || r.slug,
+          listTitle: r.list_title || r.card_title || r.title || r.slug,
+          image: r.card_image,
+        }))
+      );
+    });
+  }, []);
 
   // Close on Escape + lock page scroll while the list is open
   useEffect(() => {
@@ -41,22 +73,22 @@ export default function CismaLectureSeries() {
 
         {/* Grid (latest posts only) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {lectures.slice(0, GRID_COUNT).map((lecture) => (
+          {items.slice(0, GRID_COUNT).map((lecture) => (
             <Link
               key={lecture.slug}
               href={`/lectures/${lecture.slug}`}
               className="relative aspect-square overflow-hidden bg-gray-300 group block"
             >
-              {lecture.hasCardImage ? (
+              {lecture.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={lecture.cardImage}
+                  src={lecture.image}
                   alt={lecture.cardTitle}
                   className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs text-center px-4">
-                  Image not added — place it at /public{lecture.cardImage}
+                  No image
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -112,7 +144,7 @@ export default function CismaLectureSeries() {
             </div>
 
             <ul className="border-t border-gray-200">
-              {lectures.map((lecture) => (
+              {items.map((lecture) => (
                 <li key={lecture.slug} className="border-b border-gray-200">
                   <Link
                     href={`/lectures/${lecture.slug}`}
@@ -120,17 +152,17 @@ export default function CismaLectureSeries() {
                     className="flex items-center gap-3 py-4 hover:bg-gray-50 transition-colors"
                   >
                     <span className="relative shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gray-300">
-                      {lecture.hasCardImage && (
+                      {lecture.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={lecture.cardImage}
+                          src={lecture.image}
                           alt=""
                           className="w-full h-full object-cover"
                         />
                       )}
                     </span>
                     <span className="text-sm text-gray-700 leading-snug">
-                      {lecture.listTitle || lecture.cardTitle}
+                      {lecture.listTitle}
                     </span>
                   </Link>
                 </li>

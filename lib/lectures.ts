@@ -126,7 +126,6 @@ export const lectures: Lecture[] = [
       },
 
       { type: "heading", text: "Hosts" },
-      { type: "text", bold: true, text: "Muhammad Afzaal" },
       { type: "text", text: "Founder and Co-Chair, CISMA\nAssociate Professor, Shanghai International Studies University" },
       { type: "text", bold: true, text: "Shanshan Xiao" },
       { type: "text", text: "Coordinator, PhD Candidate\nShanghai International Studies University" },
