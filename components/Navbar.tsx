@@ -6,24 +6,39 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-const pastEvents = [
-  { label: "CISMA Attendee Guide 2026", href: "/cisma-attendee-guide-2026" },
-  { label: "Travel Information", href: "/cisma-attendee-guide-2026#travel-information" },
-  { label: "Keynote 2026", href: "/keynote-2026" },
-  { label: "Schedule", href: "/keynote-2026#schedule" },
-  { label: "Download", href: "/keynote-2026#download" },
-  { label: "Book of Abstracts 2026", href: "/book-of-abstracts-2026.pdf" },
-  { label: "Memory", href: "/memory" },
+type MenuItem = {
+  label: string;
+  href: string;
+  parent: string | null;
+  sort_order: number;
+  kind?: string | null;
+  key?: string | null;
+};
+
+// Database na mile to yeh menu dikhta hai, taake navbar kabhi khali na ho
+const FALLBACK: MenuItem[] = [
+  { label: "About CISMA", href: "/about", parent: null, sort_order: 1 },
+  { label: "CISMA Lectures Series", href: "/#cisma-lectures-series", parent: null, sort_order: 2 },
+  { label: "CISMA Podcast", href: "/podcast", parent: null, sort_order: 3 },
+  { label: "Past Events", href: "#", parent: null, sort_order: 4, kind: "dropdown", key: "past-events" },
+  { label: "Privacy Policy", href: "/privacy-policy", parent: null, sort_order: 5 },
+  { label: "CISMA Attendee Guide 2026", href: "/cisma-attendee-guide-2026", parent: "past-events", sort_order: 1 },
+  { label: "Keynote 2026", href: "/keynote-2026", parent: "past-events", sort_order: 2 },
+  { label: "Book of Abstracts 2026", href: "/book-of-abstracts-2026.pdf", parent: "past-events", sort_order: 3 },
+  { label: "Memory", href: "/memory", parent: "past-events", sort_order: 4 },
 ];
+
+const PUBLISH_URL =
+  "https://www.degruyterbrill.com/journal/key/csh/html?srsltid=AfmBOooYXr95qYA8GnQTCxM3f7BOsBoTdFeqjIA3v6_Bnd9uK6JesEaz";
 
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [openKey, setOpenKey] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-    const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [menu, setMenu] = useState<MenuItem[]>(FALLBACK);
 
   useEffect(() => {
     const supabase = createClient();
@@ -35,6 +50,22 @@ export default function Navbar() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Menu database se
+  useEffect(() => {
+    createClient()
+      .from("menu_items")
+      .select("label, href, parent, sort_order, kind, key")
+      .eq("visible", true)
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length) setMenu(data as MenuItem[]);
+      });
+  }, []);
+
+  const topItems = menu.filter((m) => !m.parent);
+  const childrenOf = (key?: string | null) =>
+    menu.filter((m) => key && m.parent === key);
 
   const linkColor = isHome
     ? "text-white hover:text-gray-200 drop-shadow-sm"
@@ -65,48 +96,44 @@ export default function Navbar() {
 
         {/* Desktop menu */}
         <nav className="hidden lg:flex items-center gap-3 xl:gap-5 text-[13px] xl:text-sm font-semibold shrink-0 whitespace-nowrap">
-          <Link href="/about" className={`transition-colors ${linkColor}`}>
-            About CISMA
-          </Link>
-          <Link href="/#cisma-lectures-series" className={`transition-colors ${linkColor}`}>
-            CISMA Lectures Series
-          </Link>
-          <Link href="/podcast" className={`transition-colors ${linkColor}`}>
-            CISMA Podcast
-          </Link>
+          {topItems.map((m) =>
+            m.kind === "dropdown" ? (
+              childrenOf(m.key).length > 0 && (
+                <div
+                  key={m.label}
+                  className="relative"
+                  onMouseEnter={() => setOpenKey(m.key ?? null)}
+                  onMouseLeave={() => setOpenKey(null)}
+                >
+                  <button className={`transition-colors flex items-center gap-1 ${linkColor}`}>
+                    {m.label}
+                    <svg width="9" height="9" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M5 7l5 6 5-6z" />
+                    </svg>
+                  </button>
+                  {openKey === m.key && (
+                    <div className="absolute left-0 top-full w-64 bg-white shadow-lg border border-gray-100 rounded-md py-2">
+                      {childrenOf(m.key).map((c) => (
+                        <Link
+                          key={c.label}
+                          href={c.href}
+                          onClick={() => setOpenKey(null)}
+                          className="block px-4 py-2 text-sm font-normal text-gray-700 hover:bg-cisma-light hover:text-cisma-blue"
+                        >
+                          {c.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            ) : (
+              <Link key={m.label} href={m.href} className={`transition-colors ${linkColor}`}>
+                {m.label}
+              </Link>
+            )
+          )}
 
-          {/* Dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
-          >
-            <button className={`transition-colors flex items-center gap-1 ${linkColor}`}>
-              Past Events
-              <svg width="9" height="9" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M5 7l5 6 5-6z" />
-              </svg>
-            </button>
-            {dropdownOpen && (
-              <div className="absolute left-0 top-full w-64 bg-white shadow-lg border border-gray-100 rounded-md py-2">
-                {pastEvents.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setDropdownOpen(false)}
-                    className="block px-4 py-2 text-sm font-normal text-gray-700 hover:bg-cisma-light hover:text-cisma-blue"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <Link href="/privacy-policy" className={`transition-colors ${linkColor}`}>
-            Privacy Policy
-          </Link>
-          
           <Link
             href={loggedIn ? "/dashboard" : "/login"}
             className={`transition-colors ${linkColor}`}
@@ -115,7 +142,7 @@ export default function Navbar() {
           </Link>
 
           <a
-            href="https://www.degruyterbrill.com/journal/key/csh/html?srsltid=AfmBOooYXr95qYA8GnQTCxM3f7BOsBoTdFeqjIA3v6_Bnd9uK6JesEaz"
+            href={PUBLISH_URL}
             className="ml-1 rounded-md bg-[#f3ddc4] text-gray-800 px-3.5 py-2 text-[13px] xl:text-sm font-bold hover:bg-[#ecd0af] transition-colors"
           >
             Publish with us
@@ -141,20 +168,32 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-gray-200 bg-white px-4 py-4 space-y-3 text-sm font-semibold text-gray-700">
-          <Link href="/about" className="block">About CISMA</Link>
-          <Link href="/#cisma-lectures-series" className="block">CISMA Lectures Series</Link>
-          <Link href="/podcast" className="block">CISMA Podcast</Link>
-          <details>
-            <summary className="cursor-pointer">Past Events</summary>
-            <div className="pl-4 pt-2 space-y-2">
-              {pastEvents.map((item) => (
-                <Link key={item.label} href={item.href} onClick={() => setMobileOpen(false)} className="block text-gray-600 font-normal">
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </details>
-          <Link href="/privacy-policy" className="block">Privacy Policy</Link>
+          {topItems.map((m) =>
+            m.kind === "dropdown" ? (
+              childrenOf(m.key).length > 0 && (
+                <details key={m.label}>
+                  <summary className="cursor-pointer">{m.label}</summary>
+                  <div className="pl-4 pt-2 space-y-2">
+                    {childrenOf(m.key).map((c) => (
+                      <Link
+                        key={c.label}
+                        href={c.href}
+                        onClick={() => setMobileOpen(false)}
+                        className="block text-gray-600 font-normal"
+                      >
+                        {c.label}
+                      </Link>
+                    ))}
+                  </div>
+                </details>
+              )
+            ) : (
+              <Link key={m.label} href={m.href} onClick={() => setMobileOpen(false)} className="block">
+                {m.label}
+              </Link>
+            )
+          )}
+
           <Link
             href={loggedIn ? "/dashboard" : "/login"}
             onClick={() => setMobileOpen(false)}
@@ -162,7 +201,10 @@ export default function Navbar() {
           >
             {loggedIn ? "Dashboard" : "Log in"}
           </Link>
-          <a href="#" className="block rounded-full bg-[#f3ddc4] text-gray-800 px-4 py-2 text-center font-bold">
+          <a
+            href={PUBLISH_URL}
+            className="block rounded-full bg-[#f3ddc4] text-gray-800 px-4 py-2 text-center font-bold"
+          >
             Publish with us
           </a>
         </div>

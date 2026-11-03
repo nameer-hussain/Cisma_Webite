@@ -27,36 +27,38 @@ type LectureOption = {
   has_certificate: boolean
 }
 
-const TEMPLATE_PATH = '/certificate-template.png'
-
-// Har lecture ki details. Key wohi hai jo database mein lecture_slug hai.
-const LECTURE_INFO: Record<
-  string,
-  {
-    topic: string
-    speaker: string
-    speakerInfo: string[] // zyada se zyada 2 lines, har line chhoti rakhein
-    date: string
-    time: string
-  }
-> = {
-  'paul-baker-14': {
-    topic:
-      'Surprise Words and Core Words: Using Vibe Coding to Identify Collocational Divergence Across Corpora',
-    speaker: 'Prof. Paul Baker',
-    speakerInfo: [
-      'Professor, Department of English and Communication',
-      'The Hong Kong Polytechnic University',
-    ],
-    date: '27 October 2026',
-    time: '1:00 PM PKT (08:00 UTC)',
-  },
+type LectureInfo = {
+  topic: string
+  speaker: string
+  speakerInfo: string[] // zyada se zyada 2 lines
+  date: string
+  time: string
 }
 
-// Dashboard par lecture ka naam dikhane ke liye
-function lectureLabel(slug: string) {
-  const info = LECTURE_INFO[slug]
-  return info ? `${info.speaker}: ${info.topic}` : slug
+const TEMPLATE_PATH = '/certificate-template.png'
+
+// Har lecture ki certificate details database (lectures table) se aati hain
+async function fetchLectureInfo(slugs: string[]) {
+  const map: Record<string, LectureInfo> = {}
+  if (!slugs.length) return map
+  const { data } = await createClient()
+    .from('lectures')
+    .select('slug, title, speaker_name, date_text, cert_topic, cert_speaker, cert_speaker_info, cert_date, cert_time')
+    .in('slug', slugs)
+  ;(data || []).forEach((r) => {
+    map[r.slug] = {
+      topic: r.cert_topic || r.title || '',
+      speaker: r.cert_speaker || r.speaker_name || '',
+      speakerInfo: (r.cert_speaker_info || '')
+        .split('\n')
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+        .slice(0, 2),
+      date: r.cert_date || r.date_text || '',
+      time: r.cert_time || '',
+    }
+  })
+  return map
 }
 
 // Positions, template ke pixels mein (template 1655 pixel chora hai)
@@ -71,7 +73,7 @@ const FOOTER_Y = 2324
 // Template ke purane "delivered by" aur Date/Time/Venue ko dhakne ke liye
 const COVER = { x: 760, y: 1300, w: 240, h: 270 }
 
-// Neeche ka naam aur designation (template ke purane text ko dhak kar naya bold safed text likha jata hai)
+// Neeche ka naam aur designation
 const CHAIR_NAME = 'MUAHAMMAD AFZAAL'
 const CHAIR_TITLE = 'FOUNDER & CO-CHAIR, CISMA'
 const CHAIR_X = 863
@@ -116,6 +118,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [lectureOptions, setLectureOptions] = useState<LectureOption[]>([])
+  const [lectureInfo, setLectureInfo] = useState<Record<string, LectureInfo>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -136,6 +139,19 @@ export default function DashboardPage() {
   const [certError, setCertError] = useState('')
   const [certMessage, setCertMessage] = useState('')
   const [busy, setBusy] = useState('')
+
+  // Dashboard par lecture ka naam dikhane ke liye
+  const lectureLabel = (slug: string) => {
+    const info = lectureInfo[slug]
+    return info && info.speaker ? `${info.speaker}: ${info.topic}` : slug
+  }
+
+  async function refreshInfo(certs: Certificate[], options: LectureOption[]) {
+    const slugs = Array.from(
+      new Set([...certs.map((c) => c.lecture_slug), ...options.map((o) => o.lecture_slug)])
+    )
+    setLectureInfo(await fetchLectureInfo(slugs))
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -164,6 +180,7 @@ export default function DashboardPage() {
       const { certs, options } = await fetchCertificateData(userData.user.id)
       setCertificates(certs)
       setLectureOptions(options)
+      await refreshInfo(certs, options)
       setLoading(false)
     }
 
@@ -221,6 +238,7 @@ export default function DashboardPage() {
       const fresh = await fetchCertificateData(userId)
       setCertificates(fresh.certs)
       setLectureOptions(fresh.options)
+      await refreshInfo(fresh.certs, fresh.options)
       setApplyMessage(
         result === 'issued'
           ? 'Your certificate is ready. Set your name below, then you can view or download it.'
@@ -330,7 +348,7 @@ export default function DashboardPage() {
     }
     doc.text(cert.full_name, NAME_X * s, NAME_Y * s, { align: 'center' })
 
-    const info = LECTURE_INFO[cert.lecture_slug]
+    const info = lectureInfo[cert.lecture_slug]
     if (info) {
       const cx = CENTER_X * s
 
@@ -381,13 +399,15 @@ export default function DashboardPage() {
       })
       y += 18
 
-      // Date aur Time: har line (label + value) beech mein
+      // Date aur Time: khali value wali line nahi chhapti
       doc.setFontSize(pt(30))
       const gap = 10 * s
-      const rows: [string, string][] = [
-        ['Date:', info.date],
-        ['Time:', info.time],
-      ]
+      const rows = (
+        [
+          ['Date:', info.date],
+          ['Time:', info.time],
+        ] as [string, string][]
+      ).filter(([, v]) => v)
       rows.forEach(([label, value]) => {
         const wl = doc.getTextWidth(label)
         const wv = doc.getTextWidth(value)
@@ -400,7 +420,7 @@ export default function DashboardPage() {
       })
     }
 
-    // Co-chair ka naam aur designation: bold safed, topic ki tarah
+    // Co-chair ka naam aur designation
     doc.setFillColor(7, 41, 79)
     doc.rect(
       CHAIR_COVER.x * s,

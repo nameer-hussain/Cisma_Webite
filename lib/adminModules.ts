@@ -86,6 +86,30 @@ export const ADMIN_MODULES: AdminModule[] = [
     roles: ['admin', 'editor'],
     href: '/admin/events',
   },
+  {
+    key: 'pages',
+    tag: 'Content',
+    title: 'Pages',
+    description: 'Edit About and other pages: text, images, buttons and team lists.',
+    roles: ['admin', 'editor'],
+    href: '/admin/pages',
+  },
+  {
+    key: 'keynotes',
+    tag: 'Content',
+    title: 'Keynotes',
+    description: 'Add or edit keynote speakers, their talks and photos.',
+    roles: ['admin', 'editor'],
+    href: '/admin/keynotes',
+  },
+  {
+    key: 'menu',
+    tag: 'Content',
+    title: 'Menu',
+    description: 'Edit the website menu and the Past Events dropdown.',
+    roles: ['admin', 'editor'],
+    href: '/admin/menu',
+  },
 ]
 
 export function modulesFor(role: string) {

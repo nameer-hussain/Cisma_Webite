@@ -27,6 +27,11 @@ type Lec = {
   slider_description: string | null
   slider_cta: string | null
   sort_order: number
+  cert_topic: string | null
+  cert_speaker: string | null
+  cert_speaker_info: string | null
+  cert_date: string | null
+  cert_time: string | null
 }
 
 const EMPTY: Lec = {
@@ -34,6 +39,7 @@ const EMPTY: Lec = {
   speaker_name: '', card_image: null, hero_image: null, blocks: [], status: 'draft',
   registration_open: false, lecture_date: null, date_text: '', slider_description: '',
   slider_cta: 'Register now', sort_order: 0,
+  cert_topic: '', cert_speaker: '', cert_speaker_info: '', cert_date: '', cert_time: '',
 }
 
 const BADGE: Record<string, string> = {
@@ -289,6 +295,24 @@ export default function AdminLecturesPage() {
                 <input type="checkbox" checked={edit.registration_open} onChange={(e) => setEdit({ ...edit, registration_open: e.target.checked })} />
                 Registration open
               </label>
+
+              <div className="mt-2 border-t border-gray-100 pt-4 md:col-span-2">
+                <p className="text-sm font-semibold text-neutral-900">Certificate details</p>
+                <p className="text-xs text-neutral-500">
+                  Printed on the certificate. If left empty, the lecture title and speaker name are used.
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs text-neutral-500">Lecture topic</label>
+                <textarea rows={2} className={inputClass} value={edit.cert_topic ?? ''} onChange={(e) => setEdit({ ...edit, cert_topic: e.target.value })} />
+              </div>
+              {field('Speaker (e.g. Prof. Paul Baker)', 'cert_speaker')}
+              <div>
+                <label className="mb-1 block text-xs text-neutral-500">Speaker details (max 2 short lines)</label>
+                <textarea rows={2} className={inputClass} value={edit.cert_speaker_info ?? ''} onChange={(e) => setEdit({ ...edit, cert_speaker_info: e.target.value })} />
+              </div>
+              {field('Date on certificate (e.g. 17 November 2026)', 'cert_date')}
+              {field('Time on certificate (e.g. 17:00 CST)', 'cert_time')}
 
               {(['card_image', 'hero_image'] as const).map((k) => (
                 <div key={k}>
