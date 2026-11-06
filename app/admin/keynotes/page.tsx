@@ -7,8 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 type Kn = {
   slug: string; speaker_name: string; title: string | null; photo: string | null
   abstract: string; keywords: string | null; bio: string | null; published: boolean; sort_order: number
+  conference_slug: string
 }
-const EMPTY: Kn = { slug: '', speaker_name: '', title: '', photo: null, abstract: '', keywords: '', bio: '', published: true, sort_order: 0 }
+const CONFS = ['cisma-2026', 'cisma-2027']
+const confLabel = (c: string) => c.replace('cisma-', 'CISMA ')
+const EMPTY: Kn = { slug: '', speaker_name: '', title: '', photo: null, abstract: '', keywords: '', bio: '', published: true, sort_order: 0, conference_slug: 'cisma-2027' }
 const inputClass =
   'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-cisma-blue focus:outline-none focus:ring-1 focus:ring-cisma-blue'
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60)
@@ -16,6 +19,7 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').repla
 export default function AdminKeynotesPage() {
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'denied' | 'ok'>('loading')
+  const [conf, setConf] = useState('cisma-2027')
   const [list, setList] = useState<Kn[]>([])
   const [edit, setEdit] = useState<Kn | null>(null)
   const [isNew, setIsNew] = useState(false)
@@ -24,10 +28,14 @@ export default function AdminKeynotesPage() {
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   const load = useCallback(async () => {
-    const { data, error } = await createClient().from('keynotes').select('*').order('sort_order', { ascending: true })
+    const { data, error } = await createClient()
+      .from('keynotes')
+      .select('*')
+      .eq('conference_slug', conf)
+      .order('sort_order', { ascending: true })
     if (error) setMsg({ type: 'err', text: error.message })
     setList((data ?? []) as Kn[])
-  }, [])
+  }, [conf])
 
   useEffect(() => {
     const supabase = createClient()
@@ -36,10 +44,13 @@ export default function AdminKeynotesPage() {
       if (!u.user) return router.replace('/login')
       const { data: me } = await supabase.from('profiles').select('role').eq('id', u.user.id).single()
       if (!['admin', 'editor'].includes(me?.role ?? '')) return setStatus('denied')
-      await load()
       setStatus('ok')
     })()
-  }, [router, load])
+  }, [router])
+
+  useEffect(() => {
+    if (status === 'ok') load()
+  }, [status, load])
 
   async function move(i: number, d: -1 | 1) {
     const j = i + d
@@ -70,8 +81,9 @@ export default function AdminKeynotesPage() {
 
   async function save() {
     if (!edit) return
-    if (!edit.slug.trim() || !edit.speaker_name.trim() || !edit.abstract.trim())
-      return setMsg({ type: 'err', text: 'Slug, speaker name and abstract are required.' })
+    // Abstract is optional for 2027 speakers announced by name only.
+    if (!edit.slug.trim() || !edit.speaker_name.trim())
+      return setMsg({ type: 'err', text: 'Slug and speaker name are required.' })
     setSaving(true)
     setMsg(null)
     const supabase = createClient()
@@ -119,8 +131,18 @@ export default function AdminKeynotesPage() {
           <>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <h1 className="font-heading text-4xl font-medium tracking-tight text-neutral-900">Keynotes</h1>
-              <button onClick={() => { setEdit({ ...EMPTY }); setIsNew(true); setMsg(null) }}
-                className="rounded-md bg-black px-5 py-2.5 text-sm font-bold text-white hover:bg-neutral-700">+ Add keynote</button>
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  className={inputClass + ' !w-auto'}
+                  value={conf}
+                  onChange={(e) => { setConf(e.target.value); setMsg(null) }}
+                  aria-label="Conference"
+                >
+                  {CONFS.map((c) => <option key={c} value={c}>{confLabel(c)}</option>)}
+                </select>
+                <button onClick={() => { setEdit({ ...EMPTY, conference_slug: conf }); setIsNew(true); setMsg(null) }}
+                  className="rounded-md bg-black px-5 py-2.5 text-sm font-bold text-white hover:bg-neutral-700">+ Add keynote</button>
+              </div>
             </div>
             <div className="mt-6 space-y-3">
               {list.map((k, i) => (
@@ -145,17 +167,19 @@ export default function AdminKeynotesPage() {
                   <button onClick={() => remove(k)} className="rounded-md border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50">Delete</button>
                 </div>
               ))}
-              {!list.length && <p className="text-neutral-500">No keynotes yet.</p>}
+              {!list.length && <p className="text-neutral-500">No keynotes for {confLabel(conf)} yet.</p>}
             </div>
           </>
         ) : (
           <div className="mt-4">
-            <h1 className="font-heading text-3xl font-medium text-neutral-900">{isNew ? 'Add keynote' : 'Edit keynote'}</h1>
+            <h1 className="font-heading text-3xl font-medium text-neutral-900">
+              {isNew ? 'Add keynote' : 'Edit keynote'} <span className="text-lg text-neutral-500">({confLabel(edit.conference_slug)})</span>
+            </h1>
             <div className="mt-6 grid gap-4 rounded-2xl border border-gray-100 bg-white p-6 md:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs text-neutral-500">Slug (URL, cannot change later)</label>
                 <input className={inputClass + (!isNew ? ' bg-gray-50' : '')} disabled={!isNew} value={edit.slug}
-                  onChange={(e) => setEdit({ ...edit, slug: slugify(e.target.value) })} placeholder="e.g. jane-doe" />
+                  onChange={(e) => setEdit({ ...edit, slug: slugify(e.target.value) })} placeholder="e.g. jane-doe-2027" />
               </div>
               <div>
                 <label className="mb-1 block text-xs text-neutral-500">Speaker name</label>
@@ -166,7 +190,7 @@ export default function AdminKeynotesPage() {
                 <input className={inputClass} value={edit.title ?? ''} onChange={(e) => setEdit({ ...edit, title: e.target.value })} />
               </div>
               <div className="md:col-span-2">
-                <label className="mb-1 block text-xs text-neutral-500">Abstract (leave an empty line between paragraphs)</label>
+                <label className="mb-1 block text-xs text-neutral-500">Abstract (optional for now; leave an empty line between paragraphs)</label>
                 <textarea rows={10} className={inputClass} value={edit.abstract} onChange={(e) => setEdit({ ...edit, abstract: e.target.value })} />
               </div>
               <div className="md:col-span-2">

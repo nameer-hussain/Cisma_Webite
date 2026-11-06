@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-type K = { slug: string; speaker_name: string; title: string | null; photo: string | null; abstract: string; keywords: string | null; bio: string | null };
+type K = { slug: string; speaker_name: string; title: string | null; photo: string | null; abstract: string; keywords: string | null; bio: string | null; conference_slug: string };
 
 export default function KeynoteDetail() {
   const [state, setState] = useState<"loading" | "missing" | "ok">("loading");
   const [k, setK] = useState<K | null>(null);
+  const [base, setBase] = useState("/keynote-2026");
   const [prev, setPrev] = useState<{ slug: string; speaker_name: string } | null>(null);
   const [next, setNext] = useState<{ slug: string; speaker_name: string } | null>(null);
 
@@ -21,8 +22,11 @@ export default function KeynoteDetail() {
       if (!data) return setState("missing");
       setK(data as K);
       document.title = `Keynote Speech: ${data.speaker_name} | CISMA`;
+      const conf: string = data.conference_slug || "cisma-2026";
+      const basePath = `/keynote-${conf.split("-").pop()}`;
+      setBase(basePath);
       const { data: all } = await supabase
-        .from("keynotes").select("slug, speaker_name").eq("published", true).order("sort_order", { ascending: true });
+        .from("keynotes").select("slug, speaker_name").eq("published", true).eq("conference_slug", conf).order("sort_order", { ascending: true });
       const list = all ?? [];
       const i = list.findIndex((x) => x.slug === slug);
       setPrev(i > 0 ? list[i - 1] : null);
@@ -36,7 +40,7 @@ export default function KeynoteDetail() {
     return (
       <div className="py-40 text-center">
         <h1 className="text-2xl font-bold text-gray-900">Keynote not found</h1>
-        <Link href="/keynote-2026" className="mt-4 inline-block text-cisma-blue">Back to all keynotes</Link>
+        <Link href={base} className="mt-4 inline-block text-cisma-blue">Back to all keynotes</Link>
       </div>
     );
 
@@ -67,20 +71,20 @@ export default function KeynoteDetail() {
 
         <nav aria-label="Keynote navigation" className="mt-20 flex items-start justify-between gap-6 border-t border-neutral-200 pt-6">
           {prev ? (
-            <Link href={`/keynote-2026/${prev.slug}`} className="group block text-left">
+            <Link href={`${base}/${prev.slug}`} className="group block text-left">
               <span className="block text-xs text-neutral-500">‹ Previous</span>
               <span className="mt-1 block text-neutral-900 group-hover:underline">Keynote Speech: {prev.speaker_name}</span>
             </Link>
           ) : <span />}
           {next ? (
-            <Link href={`/keynote-2026/${next.slug}`} className="group block text-right">
+            <Link href={`${base}/${next.slug}`} className="group block text-right">
               <span className="block text-xs text-neutral-500">Next ›</span>
               <span className="mt-1 block text-neutral-900 group-hover:underline">Keynote Speech: {next.speaker_name}</span>
             </Link>
           ) : <span />}
         </nav>
         <div className="mt-6 border-t border-neutral-200 pt-4 text-sm">
-          <Link href="/keynote-2026" className="text-neutral-600 hover:text-neutral-900">‹ Back to all keynotes</Link>
+          <Link href={base} className="text-neutral-600 hover:text-neutral-900">‹ Back to all keynotes</Link>
         </div>
       </article>
     </main>
