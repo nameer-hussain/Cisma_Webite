@@ -103,6 +103,14 @@ export const ADMIN_MODULES: AdminModule[] = [
     href: '/admin/keynotes',
   },
   {
+    key: 'conference',
+    tag: 'Content',
+    title: 'Conference Setup',
+    description: 'Edit conference details, deadlines, tracks, topics and submission types.',
+    roles: ['admin', 'editor'],
+    href: '/admin/conference',
+  },
+  {
     key: 'menu',
     tag: 'Content',
     title: 'Menu',
