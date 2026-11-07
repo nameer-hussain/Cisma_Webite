@@ -7,7 +7,7 @@ type Conf = {
   slug: string; name: string; theme: string | null; description: string
   start_date: string | null; end_date: string | null
   venue: string | null; city: string | null; country: string | null
-  hosts: string | null; contact_email: string | null
+  hosts: string | null; contact_email: string | null; platform_email: string | null
   submission_guidelines: string; publication_info: string; published: boolean
   hero_image: string | null
 }
@@ -135,7 +135,7 @@ export default function ConferenceView({ slug }: { slug: string }) {
     tracks.length > 0 && { id: 'topics', label: 'Topics' },
     (types.length > 0 || conf.submission_guidelines) && { id: 'submissions', label: 'Submissions' },
     conf.publication_info && { id: 'publication', label: 'Publication' },
-    conf.contact_email && { id: 'contact', label: 'Contact' },
+    (conf.contact_email || conf.platform_email) && { id: 'contact', label: 'Contact' },
   ].filter(Boolean) as { id: string; label: string }[]
 
   const facts = [
@@ -186,7 +186,7 @@ export default function ConferenceView({ slug }: { slug: string }) {
 
       {/* ---------- Key facts ---------- */}
       {facts.length > 0 && (
-        <div className="mx-auto -mt-8 max-w-4xl px-6">
+        <div className="relative z-10 mx-auto -mt-8 max-w-4xl px-6">
           <dl className="grid divide-y divide-gray-100 rounded-2xl border border-gray-100 bg-white shadow-lg md:grid-cols-3 md:divide-x md:divide-y-0">
             {facts.map((f) => (
               <div key={f.label} className="px-6 py-5">
@@ -360,12 +360,22 @@ export default function ConferenceView({ slug }: { slug: string }) {
         )}
 
         {/* ---------- Contact ---------- */}
-        {conf.contact_email && (
+        {(conf.contact_email || conf.platform_email) && (
           <Section id="contact" title="Contact">
-            <p className="text-[16px] text-neutral-700">
-              Questions about the conference? Write to{' '}
-              <a href={`mailto:${conf.contact_email}`} className="font-semibold text-cisma-blue hover:underline">{conf.contact_email}</a>.
-            </p>
+            <ul className="space-y-2 text-[16px] text-neutral-700">
+              {conf.contact_email && (
+                <li>
+                  Conference contact:{' '}
+                  <a href={`mailto:${conf.contact_email}`} className="font-semibold text-cisma-blue hover:underline">{conf.contact_email}</a>
+                </li>
+              )}
+              {conf.platform_email && (
+                <li>
+                  CISMA Platform:{' '}
+                  <a href={`mailto:${conf.platform_email}`} className="font-semibold text-cisma-blue hover:underline">{conf.platform_email}</a>
+                </li>
+              )}
+            </ul>
           </Section>
         )}
       </div>
