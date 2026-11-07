@@ -8,7 +8,7 @@ type Conf = {
   slug: string; name: string; theme: string | null; description: string
   start_date: string | null; end_date: string | null
   venue: string | null; city: string | null; country: string | null
-  hosts: string | null; contact_email: string | null
+  hosts: string | null; contact_email: string | null; platform_email: string | null
   submission_guidelines: string; publication_info: string; published: boolean
   hero_image: string | null
 }
@@ -139,7 +139,7 @@ export default function AdminConferencePage() {
       name: conf.name.trim(),
       theme: nn(conf.theme), start_date: nn(conf.start_date), end_date: nn(conf.end_date),
       venue: nn(conf.venue), city: nn(conf.city), country: nn(conf.country),
-      hosts: nn(conf.hosts), contact_email: nn(conf.contact_email),
+      hosts: nn(conf.hosts), contact_email: nn(conf.contact_email), platform_email: nn(conf.platform_email),
     }
     const { error } = await createClient().from('conferences').update(row).eq('slug', s)
     setSaving(false)
@@ -306,6 +306,10 @@ export default function AdminConferencePage() {
                   <div className="md:col-span-2">
                     <label className="mb-1 block text-xs text-neutral-500">Contact email</label>
                     <input type="email" className={inputClass} value={conf.contact_email ?? ''} onChange={(e) => setConf({ ...conf, contact_email: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="mb-1 block text-xs text-neutral-500">CISMA Platform email (optional)</label>
+                    <input type="email" className={inputClass} value={conf.platform_email ?? ''} onChange={(e) => setConf({ ...conf, platform_email: e.target.value })} />
                   </div>
                   <div className="md:col-span-2">
                     <label className="mb-1 block text-xs text-neutral-500">Description (leave an empty line between paragraphs)</label>
