@@ -111,6 +111,14 @@ export const ADMIN_MODULES: AdminModule[] = [
     href: '/admin/conference',
   },
   {
+    key: 'submissions',
+    tag: 'Conference',
+    title: 'Submissions',
+    description: 'See all abstract submissions, change their status, download files and export CSV.',
+    roles: ['admin'],
+    href: '/admin/submissions',
+  },
+  {
     key: 'menu',
     tag: 'Content',
     title: 'Menu',

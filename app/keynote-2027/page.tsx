@@ -1,4 +1,5 @@
 import KeynoteList from "@/components/KeynoteList";
+import PageView from "@/components/PageView";
 
 export const metadata = { title: "Programme: Keynotes 2027 | CISMA" };
 
@@ -9,6 +10,7 @@ export default function Keynote2027ListPage() {
         Programme: Keynotes
       </h1>
       <KeynoteList conference="cisma-2027" basePath="/keynote-2027" />
+      <PageView slug="keynote-2027-extra" />
     </main>
   );
 }

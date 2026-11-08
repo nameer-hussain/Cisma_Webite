@@ -10,6 +10,7 @@ type Conf = {
   hosts: string | null; contact_email: string | null; platform_email: string | null
   submission_guidelines: string; publication_info: string; published: boolean
   hero_image: string | null
+  submissions_open: boolean; submissions_deadline: string | null
 }
 type Deadline = { id: string; label: string; due_date: string }
 type Track = { id: string; name: string; description: string; sort_order: number }
@@ -21,7 +22,7 @@ const NAVY = '#2a4f87'
 const ACCENTS = ['#2a4f87', '#4f8f9c', '#7aa37f']
 const LOGOS = [
   { src: '/logos/logo-cattolica.png', alt: 'Università Cattolica del Sacro Cuore' },
-  { src: '/logos/logo-sisu.png', alt: 'Shanghai International Studies University' },
+  { src: '/logos/logo-sisu.jpg', alt: 'Shanghai International Studies University' },
 ]
 
 const utc = (s: string) => new Date(`${s}T00:00:00Z`)
@@ -127,6 +128,8 @@ export default function ConferenceView({ slug }: { slug: string }) {
   const nextDeadline = deadlines.find((d) => daysUntil(d.due_date) >= 0)
   const categories = Array.from(new Set(types.map((t) => t.category)))
   const showLogos = badLogos.length < LOGOS.length
+  const submissionsOpen =
+    conf.submissions_open && (!conf.submissions_deadline || new Date().toISOString().slice(0, 10) <= conf.submissions_deadline)
 
   const nav = [
     conf.description && { id: 'about', label: 'About' },
@@ -176,7 +179,17 @@ export default function ConferenceView({ slug }: { slug: string }) {
           </p>
           {conf.start_date && <Countdown start={conf.start_date} />}
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <a href="#submissions" className="rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-100">How to submit</a>
+            {submissionsOpen && (
+              <Link href="/submit" className="rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-100">Submit your abstract</Link>
+            )}
+            <a
+              href="#submissions"
+              className={submissionsOpen
+                ? 'rounded-md border border-white/70 px-6 py-3 text-sm font-bold text-white hover:bg-white/10'
+                : 'rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-100'}
+            >
+              How to submit
+            </a>
             {keynotes.length > 0 && (
               <Link href={`/keynote-${year}`} className="rounded-md border border-white/70 px-6 py-3 text-sm font-bold text-white hover:bg-white/10">Meet the keynotes</Link>
             )}
