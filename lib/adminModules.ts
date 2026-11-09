@@ -42,7 +42,8 @@ export const ADMIN_MODULES: AdminModule[] = [
     key: 'users',
     tag: 'Access',
     title: 'Users and Roles',
-    description: 'Give members a role such as admin, editor or manager. No code changes needed.',
+    description:
+      'Give members a role such as admin, editor, manager, examiner or reviewer. No code changes needed.',
     roles: ['admin'],
     href: '/admin/users',
   },
@@ -117,6 +118,14 @@ export const ADMIN_MODULES: AdminModule[] = [
     description: 'See all abstract submissions, change their status, download files and export CSV.',
     roles: ['admin'],
     href: '/admin/submissions',
+  },
+  {
+    key: 'examiners',
+    tag: 'Conference',
+    title: 'Examiners and Decisions',
+    description: 'Give each track to an examiner, and release final decisions to the authors.',
+    roles: ['admin'],
+    href: '/admin/examiners',
   },
   {
     key: 'menu',

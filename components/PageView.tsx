@@ -98,11 +98,14 @@ export function Blocks({ blocks, dark }: { blocks: PBlock[]; dark?: boolean }) {
               ))}
             </div>
           );
-        else if (b.type === "people_grid")
+          else if (b.type === "people_grid")
           el = (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:grid-cols-4">
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-10">
               {b.items.map((m, k) => (
-                <div key={k} className="flex flex-col items-center text-center">
+                <div
+                  key={k}
+                  className="flex w-[calc(50%_-_12px)] flex-col items-center text-center sm:w-[calc(33.333%_-_16px)] md:w-[calc(25%_-_18px)]"
+                >
                   {m.photo && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={m.photo} alt={m.name} className="aspect-square w-full object-cover" />

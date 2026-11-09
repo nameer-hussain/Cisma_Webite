@@ -63,6 +63,7 @@ export default function MySubmissionsPage() {
     if (!window.confirm(`Withdraw "${r.title}"? You will not be able to undo this.`)) return
     const { error } = await createClient().from('submissions').update({ status: 'withdrawn' }).eq('id', r.id)
     if (error) return setMsg(error.message)
+    await createClient().functions.invoke('send-status-email', { body: { submission_id: r.id } })
     setMsg('')
     await load(uid)
   }

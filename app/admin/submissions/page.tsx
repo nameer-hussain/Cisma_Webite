@@ -89,10 +89,13 @@ export default function AdminSubmissionsPage() {
     })
   }, [list, fStatus, fType, fTrack, q])
 
-  async function setSubStatus(s: Sub, value: string) {
-    const { error } = await createClient().from('submissions').update({ status: value }).eq('id', s.id)
+    async function setSubStatus(s: Sub, value: string) {
+    const supabase = createClient()
+    const { error } = await supabase.from('submissions').update({ status: value }).eq('id', s.id)
     if (error) return setMsg({ type: 'err', text: error.message })
-    setMsg({ type: 'ok', text: `${refLabel(s.ref_no)} set to ${statusLabel(value)}.` })
+    const { data: em, error: emErr } = await supabase.functions.invoke('send-status-email', { body: { submission_id: s.id } })
+    const note = emErr ? ' Email could not be sent.' : em?.skipped ? ` No email sent (${em.skipped}).` : em?.ok ? ' Email sent to the author.' : ''
+    setMsg({ type: 'ok', text: `${refLabel(s.ref_no)} set to ${statusLabel(value)}.${note}` })
     await load()
   }
 

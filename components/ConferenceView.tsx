@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import PageView from '@/components/PageView'
 
 type Conf = {
   slug: string; name: string; theme: string | null; description: string
@@ -22,7 +23,7 @@ const NAVY = '#2a4f87'
 const ACCENTS = ['#2a4f87', '#4f8f9c', '#7aa37f']
 const LOGOS = [
   { src: '/logos/logo-cattolica.png', alt: 'Università Cattolica del Sacro Cuore' },
-  { src: '/logos/logo-sisu.jpg', alt: 'Shanghai International Studies University' },
+  { src: '/logos/logo-sisu.png', alt: 'Shanghai International Studies University' },
 ]
 
 const utc = (s: string) => new Date(`${s}T00:00:00Z`)
@@ -133,7 +134,7 @@ export default function ConferenceView({ slug }: { slug: string }) {
 
   const nav = [
     conf.description && { id: 'about', label: 'About' },
-    keynotes.length > 0 && { id: 'keynotes', label: 'Keynotes' },
+    { id: 'committee', label: 'Organizing committee' },
     deadlines.length > 0 && { id: 'dates', label: 'Important dates' },
     tracks.length > 0 && { id: 'topics', label: 'Topics' },
     (types.length > 0 || conf.submission_guidelines) && { id: 'submissions', label: 'Submissions' },
@@ -243,39 +244,10 @@ export default function ConferenceView({ slug }: { slug: string }) {
           </Section>
         )}
 
-        {/* ---------- Keynotes ---------- */}
-        {keynotes.length > 0 && (
-          <Section id="keynotes" title="Keynote speakers">
-            <div className="grid gap-5 sm:grid-cols-2">
-              {keynotes.map((k) => (
-                <Link
-                  key={k.slug}
-                  href={`/keynote-${year}/${k.slug}`}
-                  className="flex items-center gap-5 rounded-2xl border border-gray-100 bg-white p-5 transition-shadow hover:shadow-md"
-                >
-                  {k.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={k.photo} alt="" className="h-24 w-24 shrink-0 rounded-full object-cover" />
-                  ) : (
-                    <span
-                      className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full text-2xl font-semibold text-white"
-                      style={{ backgroundColor: NAVY }}
-                      aria-hidden="true"
-                    >
-                      {initials(k.speaker_name)}
-                    </span>
-                  )}
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-neutral-900">{k.speaker_name}</span>
-                    {k.title && <span className="mt-1 block text-sm leading-snug text-neutral-700">{k.title}</span>}
-                    {k.bio && <span className="mt-1 block text-sm text-neutral-500">{k.bio.split('\n')[0].slice(0, 90)}</span>}
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <Link href={`/keynote-${year}`} className="mt-5 inline-block text-sm font-semibold text-cisma-blue hover:underline">See all keynotes</Link>
-          </Section>
-        )}
+        {/* ---------- Organizing committee ---------- */}
+        <div id="committee" className="scroll-mt-28">
+          <PageView slug={`keynote-${year}-extra`} />
+        </div>
 
         {/* ---------- Dates ---------- */}
         {deadlines.length > 0 && (

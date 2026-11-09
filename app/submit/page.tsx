@@ -50,6 +50,7 @@ export default function SubmitPage() {
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [done, setDone] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -199,6 +200,20 @@ export default function SubmitPage() {
       setFile(null)
     }
 
+    // Confirmation email. The server sends it only once per submission.
+    const { data: mail } = await supabase.functions.invoke('send-submission-confirmation', {
+      body: { submission_id: id },
+    })
+    const m = (mail ?? {}) as { ok?: boolean; skipped?: boolean }
+    setEmailSent(m.ok === true && !m.skipped)
+
+    // Tell the examiner of this track. Sent once per examiner; a failure here does not block the author.
+    try {
+      await supabase.functions.invoke('send-review-email', { body: { event: 'new_submission', submission_id: id } })
+    } catch {
+      /* ignore */
+    }
+
     setSaving(false)
     setRefNo(ref)
     setDone(true)
@@ -227,6 +242,9 @@ export default function SubmitPage() {
           Your abstract has been {editId ? 'saved' : 'submitted'}.
           {refNo != null && <> Your reference number is <strong>{refLabel(refNo)}</strong>.</>}
         </p>
+        {emailSent && (
+          <p className="mt-2 text-sm text-green-700">A confirmation email has been sent to your account email address.</p>
+        )}
         <p className="mt-2 text-sm text-neutral-500">
           You can edit it from My submissions until {conf?.submissions_deadline ? niceDate(conf.submissions_deadline) : 'the submission deadline'}.
         </p>
