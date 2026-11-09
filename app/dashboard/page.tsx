@@ -579,6 +579,38 @@ export default function DashboardPage() {
           </div>
         )}
 
+        <div className="mt-8 rounded-lg border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-cisma-navy">Conference abstracts</h2>
+          <p className="mt-1 text-sm text-neutral-500">
+            See the abstracts you have submitted to the 3rd CISMA International Conference.
+          </p>
+          <Link
+            href="/submissions"
+            className="mt-4 inline-block rounded-md bg-cisma-navy px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cisma-blue"
+          >
+            My submissions
+          </Link>
+        </div>
+
+        {(profile?.role === 'examiner' || profile?.role === 'reviewer') && (
+          <div className="mt-8 rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-cisma-navy">
+              {profile.role === 'examiner' ? 'Examiner' : 'Reviewer'}
+            </h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              {profile.role === 'examiner'
+                ? 'See the abstracts of your track, send them to reviewers, read their reports and make the final decision.'
+                : 'See the abstracts assigned to you and write your review reports.'}
+            </p>
+            <Link
+              href={profile.role === 'examiner' ? '/examiner' : '/reviewer'}
+              className="mt-4 inline-block rounded-md bg-cisma-navy px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cisma-blue"
+            >
+              {profile.role === 'examiner' ? 'Open examiner page' : 'Open my reviews'}
+            </Link>
+          </div>
+        )}
+
         {pendingOptions.length > 0 && (
           <div className="mt-8 rounded-lg border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-cisma-navy">

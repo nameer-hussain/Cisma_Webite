@@ -65,7 +65,7 @@ export default function AdminMenuPage() {
     const row = {
       label: edit.label.trim(),
       href: isDrop ? '#' : edit.href.trim(),
-      parent: isDrop ? null : edit.parent,
+      parent: edit.parent,
       sort_order: edit.sort_order,
       visible: edit.visible,
       kind: edit.kind,
@@ -162,7 +162,7 @@ export default function AdminMenuPage() {
             <div>
               <label className="mb-1 block text-xs text-neutral-500">Type</label>
               <select className={inputClass} value={edit.kind}
-                onChange={(e) => setEdit({ ...edit, kind: e.target.value as M['kind'], parent: e.target.value === 'dropdown' ? null : edit.parent })}>
+                onChange={(e) => setEdit({ ...edit, kind: e.target.value as M['kind'], parent: edit.parent })}>
                 <option value="link">Link</option>
                 <option value="dropdown">Dropdown (a menu with items inside)</option>
               </select>
@@ -174,10 +174,19 @@ export default function AdminMenuPage() {
             </div>
 
             {edit.kind === 'dropdown' ? (
-              <div>
-                <label className="mb-1 block text-xs text-neutral-500">Key (short name, for example: workshops)</label>
-                <input className={inputClass} value={edit.key ?? ''} onChange={(e) => setEdit({ ...edit, key: keyify(e.target.value) })} />
-              </div>
+              <>
+                <div>
+                  <label className="mb-1 block text-xs text-neutral-500">Key (short name, for example: workshops)</label>
+                  <input className={inputClass} value={edit.key ?? ''} onChange={(e) => setEdit({ ...edit, key: keyify(e.target.value) })} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-neutral-500">Where does it appear?</label>
+                  <select className={inputClass} value={edit.parent ?? ''} onChange={(e) => setEdit({ ...edit, parent: e.target.value || null })}>
+                    <option value="">Menu bar</option>
+                    {dropdowns.filter((d) => d.key !== edit.key).map((d) => <option key={d.id} value={d.key ?? ''}>Inside: {d.label}</option>)}
+                  </select>
+                </div>
+              </>
             ) : (
               <>
                 <div>

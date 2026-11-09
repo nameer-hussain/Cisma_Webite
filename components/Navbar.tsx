@@ -113,16 +113,41 @@ export default function Navbar() {
                   </button>
                   {openKey === m.key && (
                     <div className="absolute left-0 top-full w-64 bg-white shadow-lg border border-gray-100 rounded-md py-2">
-                      {childrenOf(m.key).map((c) => (
-                        <Link
-                          key={c.label}
-                          href={c.href}
-                          onClick={() => setOpenKey(null)}
-                          className="block px-4 py-2 text-sm font-normal text-gray-700 hover:bg-cisma-light hover:text-cisma-blue"
-                        >
-                          {c.label}
-                        </Link>
-                      ))}
+                      {childrenOf(m.key).map((c) =>
+                        c.kind === "dropdown" ? (
+                          childrenOf(c.key).length > 0 && (
+                            <div key={c.label} className="relative group/sub">
+                              <span className="flex cursor-default items-center justify-between px-4 py-2 text-sm font-normal text-gray-700 hover:bg-cisma-light hover:text-cisma-blue">
+                                {c.label}
+                                <svg width="9" height="9" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M7 5l6 5-6 5z" />
+                                </svg>
+                              </span>
+                              <div className="absolute left-full top-0 hidden w-64 rounded-md border border-gray-100 bg-white py-2 shadow-lg group-hover/sub:block">
+                                {childrenOf(c.key).map((s) => (
+                                  <Link
+                                    key={s.label}
+                                    href={s.href}
+                                    onClick={() => setOpenKey(null)}
+                                    className="block px-4 py-2 text-sm font-normal text-gray-700 hover:bg-cisma-light hover:text-cisma-blue"
+                                  >
+                                    {s.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <Link
+                            key={c.label}
+                            href={c.href}
+                            onClick={() => setOpenKey(null)}
+                            className="block px-4 py-2 text-sm font-normal text-gray-700 hover:bg-cisma-light hover:text-cisma-blue"
+                          >
+                            {c.label}
+                          </Link>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
@@ -174,16 +199,26 @@ export default function Navbar() {
                 <details key={m.label}>
                   <summary className="cursor-pointer">{m.label}</summary>
                   <div className="pl-4 pt-2 space-y-2">
-                    {childrenOf(m.key).map((c) => (
-                      <Link
-                        key={c.label}
-                        href={c.href}
-                        onClick={() => setMobileOpen(false)}
-                        className="block text-gray-600 font-normal"
-                      >
-                        {c.label}
-                      </Link>
-                    ))}
+                    {childrenOf(m.key).map((c) =>
+                      c.kind === "dropdown" ? (
+                        childrenOf(c.key).length > 0 && (
+                          <details key={c.label}>
+                            <summary className="cursor-pointer font-normal text-gray-600">{c.label}</summary>
+                            <div className="pl-4 pt-2 space-y-2">
+                              {childrenOf(c.key).map((s) => (
+                                <Link key={s.label} href={s.href} onClick={() => setMobileOpen(false)} className="block text-gray-600 font-normal">
+                                  {s.label}
+                                </Link>
+                              ))}
+                            </div>
+                          </details>
+                        )
+                      ) : (
+                        <Link key={c.label} href={c.href} onClick={() => setMobileOpen(false)} className="block text-gray-600 font-normal">
+                          {c.label}
+                        </Link>
+                      )
+                    )}
                   </div>
                 </details>
               )

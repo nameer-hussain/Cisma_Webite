@@ -11,6 +11,7 @@ type Conf = {
   hosts: string | null; contact_email: string | null; platform_email: string | null
   submission_guidelines: string; publication_info: string; published: boolean
   hero_image: string | null
+  submissions_open: boolean; submissions_deadline: string | null
 }
 type Deadline = { id: string; conference_slug: string; label: string; due_date: string; sort_order: number }
 type Track = { id: string; conference_slug: string; name: string; description: string; sort_order: number }
@@ -139,7 +140,7 @@ export default function AdminConferencePage() {
       name: conf.name.trim(),
       theme: nn(conf.theme), start_date: nn(conf.start_date), end_date: nn(conf.end_date),
       venue: nn(conf.venue), city: nn(conf.city), country: nn(conf.country),
-      hosts: nn(conf.hosts), contact_email: nn(conf.contact_email), platform_email: nn(conf.platform_email),
+      hosts: nn(conf.hosts), contact_email: nn(conf.contact_email), platform_email: nn(conf.platform_email), submissions_deadline: nn(conf.submissions_deadline),
     }
     const { error } = await createClient().from('conferences').update(row).eq('slug', s)
     setSaving(false)
@@ -336,6 +337,16 @@ export default function AdminConferencePage() {
                         Remove image
                       </button>
                     )}
+                  </div>
+                  <div className="rounded-xl border border-gray-200 p-4 md:col-span-2">
+                    <p className="text-xs font-semibold text-neutral-600">Abstract submissions</p>
+                    <label className="mt-2 flex items-center gap-2 text-sm text-neutral-700">
+                      <input type="checkbox" checked={conf.submissions_open} onChange={(e) => setConf({ ...conf, submissions_open: e.target.checked })} />
+                      Accept abstract submissions (authors can submit and edit)
+                    </label>
+                    <label className="mb-1 mt-3 block text-xs text-neutral-500">Last day for submissions (included; leave empty for no limit)</label>
+                    <input type="date" className={inputClass + ' !w-auto'} value={conf.submissions_deadline ?? ''} onChange={(e) => setConf({ ...conf, submissions_deadline: e.target.value })} />
+                    <p className="mt-2 text-xs text-neutral-500">The database enforces this date, so nobody can submit or edit after it. Dates count in UTC.</p>
                   </div>
                   <label className="flex items-center gap-2 text-sm text-neutral-700 md:col-span-2">
                     <input type="checkbox" checked={conf.published} onChange={(e) => setConf({ ...conf, published: e.target.checked })} />

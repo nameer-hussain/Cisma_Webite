@@ -12,12 +12,14 @@ type User = {
   created_at: string
 }
 
-const ROLES = ['admin', 'editor', 'manager', 'member']
+const ROLES = ['admin', 'editor', 'manager', 'examiner', 'reviewer', 'member']
 
 const BADGE: Record<string, string> = {
   admin: 'bg-rose-50 text-rose-700',
   manager: 'bg-amber-50 text-amber-700',
   editor: 'bg-sky-50 text-sky-700',
+  examiner: 'bg-violet-50 text-violet-700',
+  reviewer: 'bg-teal-50 text-teal-700',
   member: 'bg-slate-100 text-slate-600',
 }
 
@@ -125,7 +127,7 @@ export default function UsersAndRolesPage() {
         </h1>
         <p className="mt-2 text-neutral-600">Change a member&apos;s role without touching any code.</p>
 
-        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           {tile('all', 'All roles', users.length)}
           {ROLES.map((r) => tile(r, r, counts[r] ?? 0))}
         </div>

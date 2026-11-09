@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import PageView from '@/components/PageView'
 
 type Conf = {
   slug: string; name: string; theme: string | null; description: string
@@ -10,6 +11,7 @@ type Conf = {
   hosts: string | null; contact_email: string | null; platform_email: string | null
   submission_guidelines: string; publication_info: string; published: boolean
   hero_image: string | null
+  submissions_open: boolean; submissions_deadline: string | null
 }
 type Deadline = { id: string; label: string; due_date: string }
 type Track = { id: string; name: string; description: string; sort_order: number }
@@ -127,10 +129,12 @@ export default function ConferenceView({ slug }: { slug: string }) {
   const nextDeadline = deadlines.find((d) => daysUntil(d.due_date) >= 0)
   const categories = Array.from(new Set(types.map((t) => t.category)))
   const showLogos = badLogos.length < LOGOS.length
+  const submissionsOpen =
+    conf.submissions_open && (!conf.submissions_deadline || new Date().toISOString().slice(0, 10) <= conf.submissions_deadline)
 
   const nav = [
     conf.description && { id: 'about', label: 'About' },
-    keynotes.length > 0 && { id: 'keynotes', label: 'Keynotes' },
+    { id: 'committee', label: 'Organizing committee' },
     deadlines.length > 0 && { id: 'dates', label: 'Important dates' },
     tracks.length > 0 && { id: 'topics', label: 'Topics' },
     (types.length > 0 || conf.submission_guidelines) && { id: 'submissions', label: 'Submissions' },
@@ -176,7 +180,17 @@ export default function ConferenceView({ slug }: { slug: string }) {
           </p>
           {conf.start_date && <Countdown start={conf.start_date} />}
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <a href="#submissions" className="rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-100">How to submit</a>
+            {submissionsOpen && (
+              <Link href="/submit" className="rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-100">Submit your abstract</Link>
+            )}
+            <a
+              href="#submissions"
+              className={submissionsOpen
+                ? 'rounded-md border border-white/70 px-6 py-3 text-sm font-bold text-white hover:bg-white/10'
+                : 'rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-neutral-100'}
+            >
+              How to submit
+            </a>
             {keynotes.length > 0 && (
               <Link href={`/keynote-${year}`} className="rounded-md border border-white/70 px-6 py-3 text-sm font-bold text-white hover:bg-white/10">Meet the keynotes</Link>
             )}
@@ -230,39 +244,10 @@ export default function ConferenceView({ slug }: { slug: string }) {
           </Section>
         )}
 
-        {/* ---------- Keynotes ---------- */}
-        {keynotes.length > 0 && (
-          <Section id="keynotes" title="Keynote speakers">
-            <div className="grid gap-5 sm:grid-cols-2">
-              {keynotes.map((k) => (
-                <Link
-                  key={k.slug}
-                  href={`/keynote-${year}/${k.slug}`}
-                  className="flex items-center gap-5 rounded-2xl border border-gray-100 bg-white p-5 transition-shadow hover:shadow-md"
-                >
-                  {k.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={k.photo} alt="" className="h-24 w-24 shrink-0 rounded-full object-cover" />
-                  ) : (
-                    <span
-                      className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full text-2xl font-semibold text-white"
-                      style={{ backgroundColor: NAVY }}
-                      aria-hidden="true"
-                    >
-                      {initials(k.speaker_name)}
-                    </span>
-                  )}
-                  <span className="min-w-0">
-                    <span className="block font-semibold text-neutral-900">{k.speaker_name}</span>
-                    {k.title && <span className="mt-1 block text-sm leading-snug text-neutral-700">{k.title}</span>}
-                    {k.bio && <span className="mt-1 block text-sm text-neutral-500">{k.bio.split('\n')[0].slice(0, 90)}</span>}
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <Link href={`/keynote-${year}`} className="mt-5 inline-block text-sm font-semibold text-cisma-blue hover:underline">See all keynotes</Link>
-          </Section>
-        )}
+        {/* ---------- Organizing committee ---------- */}
+        <div id="committee" className="scroll-mt-28">
+          <PageView slug={`keynote-${year}-extra`} />
+        </div>
 
         {/* ---------- Dates ---------- */}
         {deadlines.length > 0 && (
