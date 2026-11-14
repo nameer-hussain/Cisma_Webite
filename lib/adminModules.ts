@@ -43,7 +43,7 @@ export const ADMIN_MODULES: AdminModule[] = [
     tag: 'Access',
     title: 'Users and Roles',
     description:
-      'Give members a role such as admin, editor, manager, examiner or reviewer. No code changes needed.',
+      'Give members a role such as admin, editor, manager, section editor or reviewer. No code changes needed.',
     roles: ['admin'],
     href: '/admin/users',
   },
@@ -122,8 +122,8 @@ export const ADMIN_MODULES: AdminModule[] = [
   {
     key: 'examiners',
     tag: 'Conference',
-    title: 'Examiners and Decisions',
-    description: 'Give each track to an examiner, and release final decisions to the authors.',
+    title: 'Section Editors and Decisions',
+    description: 'Give each track to a section editor, and release final decisions to the authors.',
     roles: ['admin'],
     href: '/admin/examiners',
   },

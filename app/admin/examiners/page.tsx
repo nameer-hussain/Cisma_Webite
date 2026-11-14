@@ -122,10 +122,10 @@ export default function AdminExaminersPage() {
     <main className="bg-slate-50">
       <div className="mx-auto max-w-3xl px-6 pb-24 pt-20 md:pt-28">
         <Link href="/admin" className="text-sm font-semibold text-neutral-600 hover:text-neutral-900">&larr; Back to dashboard</Link>
-        <h1 className="mt-4 font-heading text-4xl font-medium tracking-tight text-neutral-900">Examiners and decisions</h1>
+        <h1 className="mt-4 font-heading text-4xl font-medium tracking-tight text-neutral-900">Section editors and decisions</h1>
         <p className="mt-2 text-sm text-neutral-600">
-          Give each track to an examiner. New abstracts of that track go to that examiner. {examiners.length} examiner(s), {reviewers.length} reviewer(s).
-          To make someone an examiner or reviewer, change their role in Users.
+          Give each track to a section editor. New abstracts of that track go to that section editor. {examiners.length} section editor(s), {reviewers.length} reviewer(s).
+          To make someone a section editor or reviewer, change their role in Users.
         </p>
         {msg && <p className={`mt-3 text-sm ${msg.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}>{msg.text}</p>}
 
@@ -135,7 +135,7 @@ export default function AdminExaminersPage() {
             <div key={t.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-white p-4">
               <p className="min-w-0 flex-1 font-semibold text-neutral-900">{t.name}</p>
               <select className={inputClass} value={sel[t.id] ?? ''} onChange={(e) => setSel({ ...sel, [t.id]: e.target.value })}>
-                <option value="">No examiner</option>
+                <option value="">No section editor</option>
                 {examiners.map((p) => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
               </select>
               <button onClick={() => saveTrack(t.id)} disabled={(sel[t.id] ?? '') === (map[t.id] ?? '')}
@@ -143,7 +143,7 @@ export default function AdminExaminersPage() {
             </div>
           ))}
           {!tracks.length && <p className="text-sm text-neutral-500">No tracks found.</p>}
-          {tracks.some((t) => !map[t.id]) && <p className="text-sm text-amber-700">A track without an examiner: its abstracts are seen only by the admin.</p>}
+          {tracks.some((t) => !map[t.id]) && <p className="text-sm text-amber-700">A track without a section editor: its abstracts are seen only by the admin.</p>}
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3">

@@ -573,7 +573,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between border-t border-gray-100 pt-3">
                 <dt className="text-neutral-500">Account type</dt>
-                <dd className="capitalize text-neutral-800">{profile.role}</dd>
+                <dd className="capitalize text-neutral-800">{profile.role === 'examiner' ? 'section editor' : profile.role}</dd>
               </div>
             </dl>
           </div>
@@ -595,7 +595,7 @@ export default function DashboardPage() {
         {(profile?.role === 'examiner' || profile?.role === 'reviewer') && (
           <div className="mt-8 rounded-lg border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-cisma-navy">
-              {profile.role === 'examiner' ? 'Examiner' : 'Reviewer'}
+              {profile.role === 'examiner' ? 'Section editor' : 'Reviewer'}
             </h2>
             <p className="mt-1 text-sm text-neutral-500">
               {profile.role === 'examiner'
@@ -606,7 +606,7 @@ export default function DashboardPage() {
               href={profile.role === 'examiner' ? '/examiner' : '/reviewer'}
               className="mt-4 inline-block rounded-md bg-cisma-navy px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cisma-blue"
             >
-              {profile.role === 'examiner' ? 'Open examiner page' : 'Open my reviews'}
+              {profile.role === 'examiner' ? 'Open section editor page' : 'Open my reviews'}
             </Link>
           </div>
         )}

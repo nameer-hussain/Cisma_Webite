@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { createClient } from "@/lib/supabase/client";
+import LectureStats from "@/components/LectureStats";
 
 const inputClass =
   "w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-800 placeholder:text-gray-400 focus:border-cisma-blue focus:outline-none focus:ring-1 focus:ring-cisma-blue";
@@ -102,6 +103,7 @@ export default function LectureRegistration({ slug }: { slug: string }) {
 
   return (
     <div className="rounded-lg border border-gray-200 p-6">
+      <LectureStats slug={slug} />
       {loading ? (
         <p className="text-center text-neutral-500">Loading...</p>
       ) : !userId ? (

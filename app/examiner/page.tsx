@@ -167,7 +167,7 @@ export default function ExaminerPage() {
     return (
       <main className="bg-white"><div className="mx-auto max-w-2xl px-6 pb-24 pt-28 text-center">
         <h1 className="font-heading text-3xl font-medium text-neutral-900">Access denied</h1>
-        <p className="mt-4 text-neutral-600">This page is for examiners.</p>
+        <p className="mt-4 text-neutral-600">This page is for section editors.</p>
       </div></main>
     )
 
@@ -177,7 +177,7 @@ export default function ExaminerPage() {
     <main className="bg-slate-50">
       <div className="mx-auto max-w-5xl px-6 pb-24 pt-20 md:pt-28">
         <Link href="/dashboard" className="text-sm font-semibold text-neutral-600 hover:text-neutral-900">&larr; Back to dashboard</Link>
-        <h1 className="mt-4 font-heading text-4xl font-medium tracking-tight text-neutral-900">Examiner</h1>
+        <h1 className="mt-4 font-heading text-4xl font-medium tracking-tight text-neutral-900">Section editor</h1>
         <p className="mt-2 text-sm text-neutral-600">
           {myTracks.length > 0 ? <>Your track(s): {myTracks.map((t) => tracks[t] ?? t).join(', ')}</> : 'No track is assigned to you yet. Please contact the admin.'}
         </p>

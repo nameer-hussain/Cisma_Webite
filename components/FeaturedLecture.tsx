@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { fetchUpcomingLectures, type LectureRow } from "@/lib/siteData";
+import LectureStats from "@/components/LectureStats";
 
 export default function FeaturedLecture() {
   const [lecture, setLecture] = useState<LectureRow | null>(null);
@@ -11,6 +12,8 @@ export default function FeaturedLecture() {
   }, []);
 
   if (!lecture) return null;
+
+  const subtitle = lecture.slider_description || lecture.title;
 
   return (
     <section className="bg-gray-50 py-16">
@@ -23,22 +26,28 @@ export default function FeaturedLecture() {
             )}
           </div>
           <div className="p-8 md:p-10">
-            <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700">
+            <span className="inline-block rounded-full bg-cisma-gold/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-cisma-navy">
               Upcoming Lecture
             </span>
-            <h2 className="mt-4 text-3xl font-bold text-gray-900">
+            <h2 className="mt-4 text-3xl font-bold text-cisma-navy">
               {lecture.card_title || lecture.title}
             </h2>
-            {lecture.title && <p className="mt-3 text-lg text-gray-600">{lecture.title}</p>}
+            {subtitle && <p className="mt-3 text-lg text-gray-600">{subtitle}</p>}
             <div className="mt-6 space-y-1 text-gray-700">
               {lecture.date_text && (
                 <p><span className="font-semibold">Date:</span> {lecture.date_text}</p>
               )}
               <p><span className="font-semibold">Format:</span> Online</p>
             </div>
+
+            {/* Live registration numbers */}
+            <div className="mt-6">
+              <LectureStats slug={lecture.slug} />
+            </div>
+
             <Link
               href={`/lectures/${lecture.slug}`}
-              className="mt-8 inline-block rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+              className="inline-block rounded-lg bg-cisma-navy px-6 py-3 font-semibold text-white transition hover:bg-cisma-blue"
             >
               {lecture.registration_open ? "Register now" : "Learn more"}
             </Link>
