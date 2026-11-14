@@ -112,7 +112,7 @@ export default function ReviewerPage() {
     })
     if (error) return setMsg({ type: 'err', text: error.message })
     const { data: em, error: emErr } = await createClient().functions.invoke('send-review-email', { body: { event: 'report_in', assignment_id: a.id } })
-    const note = emErr ? ' The email to the examiner could not be sent.' : em?.ok ? ' The examiner was notified by email.' : ''
+    const note = emErr ? ' The email to the section editor could not be sent.' : em?.ok ? ' The section editor was notified by email.' : ''
     setMsg({ type: 'ok', text: `Your report was saved.${note}` })
     await load(uid)
   }
@@ -209,7 +209,7 @@ export default function ReviewerPage() {
                         </select>
                       </div>
                       <div className="mt-4">
-                        <label className="mb-1 block text-xs text-neutral-500">Comments (for the examiner)</label>
+                        <label className="mb-1 block text-xs text-neutral-500">Comments (for the section editor)</label>
                         <textarea className={inputClass} rows={5} value={f.comments} onChange={(e) => setField(a.id, 'comments', e.target.value)} />
                       </div>
                       <button onClick={() => save(a)} className="mt-4 rounded-md bg-black px-6 py-2.5 text-sm font-bold text-white hover:bg-neutral-700">

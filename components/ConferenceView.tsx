@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import PageView from '@/components/PageView'
+import SubmissionGuide from '@/components/SubmissionGuide'
 
 type Conf = {
   slug: string; name: string; theme: string | null; description: string
@@ -21,8 +22,9 @@ type Keynote = { slug: string; speaker_name: string; title: string | null; photo
 
 const NAVY = '#2a4f87'
 const ACCENTS = ['#2a4f87', '#4f8f9c', '#7aa37f']
-const LOGOS = [
-  { src: '/logos/logo-cattolica.png', alt: 'Università Cattolica del Sacro Cuore' },
+const LOGOS: { src: string; alt: string; zoom?: number }[] = [
+  { src: '/logo.webp', alt: 'CISMA' },
+  { src: '/logos/logo-cattolica.png', alt: 'Università Cattolica del Sacro Cuore', zoom: 1.32 },
   { src: '/logos/logo-sisu.png', alt: 'Shanghai International Studies University' },
 ]
 
@@ -31,7 +33,7 @@ const fmt = (s: string, o: Intl.DateTimeFormatOptions) => utc(s).toLocaleDateStr
 const fullDate = (s: string) => fmt(s, { day: 'numeric', month: 'long', year: 'numeric' })
 const daysUntil = (s: string) => Math.ceil((utc(s).getTime() - Date.now()) / 86400000)
 const paragraphs = (s: string) => s.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
-const initials = (n: string) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+
 
 function dateRange(a: string | null, b: string | null) {
   if (!a) return ''
@@ -228,16 +230,21 @@ export default function ConferenceView({ slug }: { slug: string }) {
             </div>
             {conf.hosts && <p className="mt-6 text-sm text-neutral-500">Hosted by {conf.hosts}</p>}
             {showLogos && (
-              <div className="mt-6 flex flex-wrap items-center gap-8">
+              <div className="mt-8 flex flex-wrap items-center gap-10">
                 {LOGOS.map((l) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <div
                     key={l.src}
-                    src={l.src}
-                    alt={l.alt}
-                    className={`h-14 w-auto object-contain ${badLogos.includes(l.src) ? 'hidden' : ''}`}
-                    onError={() => setBadLogos((b) => (b.includes(l.src) ? b : [...b, l.src]))}
-                  />
+                    className={`flex h-28 w-28 items-center justify-center sm:h-32 sm:w-32 ${badLogos.includes(l.src) ? 'hidden' : ''}`}
+                  >
+                    <img
+                      src={l.src}
+                      alt={l.alt}
+                      className="max-h-full max-w-full object-contain"
+                      style={l.zoom ? { transform: `scale(${l.zoom})` } : undefined}
+                      onError={() => setBadLogos((b) => (b.includes(l.src) ? b : [...b, l.src]))}
+                    />
+                  </div>
                 ))}
               </div>
             )}
@@ -324,6 +331,7 @@ export default function ConferenceView({ slug }: { slug: string }) {
                 </div>
               ))}
             </div>
+            <SubmissionGuide submitOpen={submissionsOpen} />
             {conf.submission_guidelines && (
               <div className="mt-6 rounded-2xl bg-slate-50 p-6">
                 <h3 className="font-semibold text-neutral-900">Guidelines</h3>

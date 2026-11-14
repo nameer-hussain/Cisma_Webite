@@ -1,16 +1,22 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 const SLIDES = [
   {
-    src: '/hero/hero-milan.jpg',
+    src: '/hero/hero_milan_1.jpg',
     alt: 'Rooftop view of Milan with cathedral spires and the city skyline',
     place: 'Milan, Italy',
+    href: '/conference-2027',
+    // which part of the photo stays visible (x y). The cathedral sits in the lower-middle of this photo.
+    position: 'center 58%',
   },
   {
-    src: '/hero/hero-shanghai.jpg',
+    src: '/hero/hero_shangai_1.jpg',
     alt: 'The Shanghai skyline at sunrise above the Huangpu River',
     place: 'Shanghai, China',
+    href: '/conference-2027',
+    position: 'center 50%',
   },
 ]
 
@@ -45,7 +51,7 @@ export default function Hero() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative h-[440px] sm:h-[520px] md:h-[620px]">
+      <div className="relative h-[460px] sm:h-[560px] md:h-[700px]">
         {/* Slides: they sit on top of each other and cross-fade */}
         {SLIDES.map((s, i) => {
           const active = i === index
@@ -62,25 +68,39 @@ export default function Hero() {
                 src={s.src}
                 alt={s.alt}
                 loading={i === 0 ? 'eager' : 'lazy'}
-                className={`h-full w-full object-cover object-center transition-transform duration-[7000ms] ease-out motion-reduce:transform-none ${
+                style={{ objectPosition: s.position }}
+                className={`h-full w-full object-cover transition-transform duration-[7000ms] ease-out motion-reduce:transform-none ${
                   active ? 'scale-100' : 'scale-105'
                 }`}
+              />
+              {/* The whole photo is a link */}
+              <Link
+                href={s.href}
+                tabIndex={active ? 0 : -1}
+                aria-label={`CISMA 2027 conference, ${s.place}`}
+                className="absolute inset-0 z-[5]"
               />
             </div>
           )
         })}
 
         {/* Dark gradient so the white text is easy to read on bright photos */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/25 to-black/65" />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/30 via-transparent via-45% to-black/60" />
 
         {/* Text content */}
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-end px-4 pb-10 text-center font-sans-ui md:pb-16">
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-end px-4 pb-14 text-center font-sans-ui md:pb-20">
           <h1 className="mb-3 text-3xl font-bold text-white drop-shadow sm:text-4xl md:text-6xl">
             Welcome to CISMA 2027 !
           </h1>
           <p className="text-base text-white/90 drop-shadow sm:text-lg md:text-xl">
             Join CISMA Community for Regular Events !
           </p>
+          <Link
+            href="/conference-2027"
+            className="pointer-events-auto mt-5 inline-block rounded-md bg-white px-6 py-3 text-sm font-bold text-neutral-900 shadow-lg transition hover:bg-neutral-100"
+          >
+            Explore the 2027 conference →
+          </Link>
         </div>
 
         {/* Place name of the current photo */}

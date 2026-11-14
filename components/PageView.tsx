@@ -80,25 +80,25 @@ export function Blocks({ blocks, dark }: { blocks: PBlock[]; dark?: boolean }) {
           );
         else if (b.type === "people_list")
           el = (
-            <div className="flex flex-col gap-14">
+            <div className={`mx-auto max-w-4xl divide-y ${dark ? "divide-white/20" : "divide-gray-200"}`}>
               {b.items.map((m, k) => (
-                <div key={k} className="flex flex-col gap-6 sm:flex-row sm:gap-10">
+                <div key={k} className="flex flex-col items-center gap-6 py-8 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-10">
                   {m.photo && (
-                    <div className="w-full shrink-0 sm:w-64">
+                    <div className="aspect-[4/5] w-48 shrink-0 overflow-hidden rounded-lg bg-gray-100 sm:w-52">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={m.photo} alt={m.name} className="h-auto w-full object-cover" />
+                      <img src={m.photo} alt={m.name} className="h-full w-full object-cover object-top" />
                     </div>
                   )}
-                  <div className="flex-1">
-                    {m.role && <h3 className={`mb-1 text-2xl font-bold ${strong}`}>{m.role}</h3>}
-                    <h4 className={`mb-4 text-2xl font-bold ${strong}`}>{m.name}</h4>
-                    {m.bio && <p className={`whitespace-pre-line leading-relaxed ${dark ? "text-white/80" : "text-gray-600"}`}>{m.bio}</p>}
+                  <div className="flex-1 text-center sm:text-left">
+                    {m.role && <p className={`mb-1 text-sm font-semibold uppercase tracking-wider ${dark ? "text-white/70" : "text-cisma-blue"}`}>{m.role}</p>}
+                    <h4 className={`mb-3 text-2xl font-bold ${strong}`}>{m.name}</h4>
+                    {m.bio && <p className={`whitespace-pre-line text-[15px] leading-7 ${dark ? "text-white/80" : "text-gray-600"}`}>{m.bio}</p>}
                   </div>
                 </div>
               ))}
             </div>
           );
-          else if (b.type === "people_grid")
+        else if (b.type === "people_grid")
           el = (
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-10">
               {b.items.map((m, k) => (

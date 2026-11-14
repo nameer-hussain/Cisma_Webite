@@ -14,6 +14,10 @@ type User = {
 
 const ROLES = ['admin', 'editor', 'manager', 'examiner', 'reviewer', 'member']
 
+// The stored role name stays 'examiner'; only the label shown on screen changes.
+const ROLE_LABEL: Record<string, string> = { examiner: 'section editor' }
+const roleLabel = (r: string) => ROLE_LABEL[r] ?? r
+
 const BADGE: Record<string, string> = {
   admin: 'bg-rose-50 text-rose-700',
   manager: 'bg-amber-50 text-amber-700',
@@ -78,7 +82,7 @@ export default function UsersAndRolesPage() {
       return
     }
     setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, role: next } : x)))
-    setMessage({ type: 'ok', text: `${u.email ?? u.id} is now ${next}.` })
+    setMessage({ type: 'ok', text: `${u.email ?? u.id} is now ${roleLabel(next)}.` })
   }
 
   if (status === 'loading') {
@@ -129,7 +133,7 @@ export default function UsersAndRolesPage() {
 
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           {tile('all', 'All roles', users.length)}
-          {ROLES.map((r) => tile(r, r, counts[r] ?? 0))}
+          {ROLES.map((r) => tile(r, roleLabel(r), counts[r] ?? 0))}
         </div>
 
         <form
@@ -189,7 +193,7 @@ export default function UsersAndRolesPage() {
                           BADGE[u.role] ?? 'bg-slate-100 text-slate-600'
                         }`}
                       >
-                        {u.role}
+                        {roleLabel(u.role)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -204,7 +208,7 @@ export default function UsersAndRolesPage() {
                           >
                             {ROLES.map((r) => (
                               <option key={r} value={r}>
-                                {r}
+                                {roleLabel(r)}
                               </option>
                             ))}
                           </select>
